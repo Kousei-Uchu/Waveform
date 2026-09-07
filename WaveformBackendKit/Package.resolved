@@ -1,0 +1,32 @@
+{
+  "pins" : [
+    {
+      "identity" : "palettekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/2dubu/PaletteKit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "2286664aeb24d1522debc90de265d6e4987209cd"
+      }
+    },
+    {
+      "identity" : "youtubekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/alexeichhorn/YouTubeKit.git",
+      "state" : {
+        "revision" : "e5b7d0396ce12bf3444f0d209e8436c83373b7af",
+        "version" : "0.4.9"
+      }
+    },
+    {
+      "identity" : "youtubesdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/atpugvaraa/YouTubeSDK",
+      "state" : {
+        "branch" : "main",
+        "revision" : "fa9bd98bafe98cd8d0918d22382001d10cdbe375"
+      }
+    }
+  ],
+  "version" : 2
+}

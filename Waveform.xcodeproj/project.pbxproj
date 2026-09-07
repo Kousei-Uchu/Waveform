@@ -1,0 +1,1187 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0119C157198CE713F790EF51 /* DeepLinkRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 665C19B51DBDE7B42B9AE459 /* DeepLinkRouter.swift */; };
+		017F8AD0ED148BD0F292F5FF /* AlbumsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 184345356041632D93B4EA1E /* AlbumsView.swift */; };
+		0195C6E68593110047010408 /* PlaybackVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64F1D1B4B37EDC26B7676B22 /* PlaybackVideoView.swift */; };
+		06A9C5595517A1C74C12A2D1 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A37CB9452282829876D02BA /* LiveActivityManager.swift */; };
+		0922E0FABF62E317E2081210 /* ShrinkSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBD84063C095945E2554BB1 /* ShrinkSheet.swift */; };
+		0E20AD50A1DA23ED2531229E /* WaveformBackendKit in Frameworks */ = {isa = PBXBuildFile; productRef = 77020CA50C1CDA250D487B25 /* WaveformBackendKit */; };
+		0EB5B3F38C9302112D013E79 /* SongsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA46E35FCC89F068A535C52C /* SongsView.swift */; };
+		10CD544CA28CCCB518731CD4 /* ShrinkSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2295F89E61D691861D4B5F /* ShrinkSupport.swift */; };
+		11D5423C552F5B9C6632A888 /* AlbumDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67B96AE97A34334A0CBA0A3D /* AlbumDetailView.swift */; };
+		19AEDC97692567EF5C6CD3F4 /* Pods_WaveformWidgets.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C32BF57598BCC0EBBE016A37 /* Pods_WaveformWidgets.framework */; };
+		1E6263EB399858DCB5CCE407 /* QueueRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40D0C9A74B6226324A2BD464 /* QueueRow.swift */; };
+		203362DE7FCA2D683037078E /* NowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6C05F8DCAA60BD544CA2743 /* NowPlayingView.swift */; };
+		27566D1B3406C2E7B61FD72F /* QueueRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40D0C9A74B6226324A2BD464 /* QueueRow.swift */; };
+		27927561648978C5473FFA9B /* AppGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75ED8D46AC336D2B84026E8D /* AppGroup.swift */; };
+		27D74FD65A7276FC18DC3651 /* PlaylistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DFC947F5E77BDCBC7FC23C3 /* PlaylistsView.swift */; };
+		28812F6AC9A4705321E1A90D /* Pods_Waveform_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F641B865BF1C387D071AB451 /* Pods_Waveform_iOS.framework */; };
+		2F6A120B6A2EEDC714C0DF74 /* DeepLinkRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 665C19B51DBDE7B42B9AE459 /* DeepLinkRouter.swift */; };
+		308B21E7EC2C8FA30D4A2670 /* Info-iOS.plist in Resources */ = {isa = PBXBuildFile; fileRef = 65CB84CC6536095202F1CC2F /* Info-iOS.plist */; };
+		328B6C5F93A4016E3B50F8B2 /* EmptyLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE220835023966C095738F28 /* EmptyLibraryView.swift */; };
+		370BC7D50DBACEBDBE2C8DB2 /* PlaybackActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3775E9AC08BDEF3D688AB9 /* PlaybackActivityAttributes.swift */; };
+		3CDCAEE86D1E6F75D45AF7A4 /* ItemDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 769638418C0D3778DD73418E /* ItemDetailView.swift */; };
+		46B69FB2662F659F88737C21 /* ArtworkStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 266E7FE6C137A6DF75537430 /* ArtworkStore.swift */; };
+		486B5699C277581613EF18AE /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A37CB9452282829876D02BA /* LiveActivityManager.swift */; };
+		4AEE260D2235F360AAB5D8EB /* ArtistDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33ADB6FD4DCB160B36F231D7 /* ArtistDetailView.swift */; };
+		4F86456B0B47DEA2DF6095F3 /* PlaybackActivityWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A05E07AA2B02E56DB1F71E4 /* PlaybackActivityWidget.swift */; };
+		5013A599BCA0407BABCFB9C2 /* AcquireSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06AAD5EB9BDF0130C026230D /* AcquireSettingsStore.swift */; };
+		510A2F33AEB428CB3FCA683C /* PlaybackVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64F1D1B4B37EDC26B7676B22 /* PlaybackVideoView.swift */; };
+		511A63922156E35A7E0D2F5F /* SearchDownloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A2C7AB62D91B23F30010FA /* SearchDownloadView.swift */; };
+		51E04CBBCDAD0D4A6056F289 /* AlbumDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67B96AE97A34334A0CBA0A3D /* AlbumDetailView.swift */; };
+		54297B8AAC8230CD6EACC7EE /* PaletteStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E74708B19DA3B52DBF9C6CC2 /* PaletteStore.swift */; };
+		55F2514C25D80152E2E82893 /* Pods_Waveform_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 19A7721163C1660587A9C925 /* Pods_Waveform_macOS.framework */; };
+		5801A8845D7DEEBBC090C736 /* QueueActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0100BFF36E0234B1279EC779 /* QueueActions.swift */; };
+		5D3F5F14086AECB7F3AEF9F6 /* VLCPlaybackEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF9A4766DA43ADA62A1F4843 /* VLCPlaybackEngine.swift */; };
+		6B8514EE2811F2CABACF2872 /* WaveformApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD14B835499447B3D81B8471 /* WaveformApp.swift */; };
+		6C12DF16B7AACD4D5E217784 /* QueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED687333FACD928FE7CF03F5 /* QueueView.swift */; };
+		6D10F8A9CCA28AA5747130AE /* VLCPlaybackEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF9A4766DA43ADA62A1F4843 /* VLCPlaybackEngine.swift */; };
+		6D71A841CB75B0C141A105C7 /* PaletteStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E74708B19DA3B52DBF9C6CC2 /* PaletteStore.swift */; };
+		72A07CD3098F3FD7134997D0 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3983E149416A899D8B41EA9 /* SettingsView.swift */; };
+		73A7D370D2AA0D7105979F69 /* TimeFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B4E9D519219241DF157DAF /* TimeFormatting.swift */; };
+		75414B1EF5D2F8F7E5BB1B8B /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779A98B5787D14E8C8166494 /* LibraryView.swift */; };
+		75AE2923F043652490DAFB2E /* DownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C413B9A89906A8D5A2E00550 /* DownloadManager.swift */; };
+		795B5A9215E15449D58676AE /* ArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DEC17B82C54859DADF9A87 /* ArtworkView.swift */; };
+		7A5D2BC7B78A7F9DABB91CD9 /* SongContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3402CB7106CE48F6B019BEF1 /* SongContextMenu.swift */; };
+		7A6BD7845EDFB76D6F4E420A /* ItemDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 769638418C0D3778DD73418E /* ItemDetailView.swift */; };
+		7D88169C38FA73B9B6AC7736 /* DownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C413B9A89906A8D5A2E00550 /* DownloadManager.swift */; };
+		7E5633D61BAF0603DE00C3F1 /* ArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DEC17B82C54859DADF9A87 /* ArtworkView.swift */; };
+		807566F8FBE0DE60E7AC9DB4 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8FEA2CDAA57424BB60F26E4 /* RootView.swift */; };
+		873475A4877208DCBE1F2C44 /* PlaylistControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81449954F57B1C8EB9CBCD1C /* PlaylistControls.swift */; };
+		88CC244B3DFAE21321C25B0E /* AlbumsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 184345356041632D93B4EA1E /* AlbumsView.swift */; };
+		89905E6067EF69F59835C481 /* LikedSongsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D6462AA606248D13D22A27 /* LikedSongsView.swift */; };
+		8C058DD38462F3A1683C9F70 /* ArtworkStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 266E7FE6C137A6DF75537430 /* ArtworkStore.swift */; };
+		8DCFDED0B1CACA5EF012428D /* PlaylistDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D54E6F168C9635FDB6EA40 /* PlaylistDetailView.swift */; };
+		8E355A97DEB961E1A02E4134 /* WaveformWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2219E19BE6F04F18029BFA19 /* WaveformWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		94043F70DC95451E776467B8 /* SongContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3402CB7106CE48F6B019BEF1 /* SongContextMenu.swift */; };
+		9C9403D3E54F943E4A98ECB0 /* PlaybackActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3775E9AC08BDEF3D688AB9 /* PlaybackActivityAttributes.swift */; };
+		9D76CEF1C3E60E9C4C241993 /* ShrinkSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBD84063C095945E2554BB1 /* ShrinkSheet.swift */; };
+		A09C4B04D74CE1AF930445B3 /* WaveformBackendKit in Frameworks */ = {isa = PBXBuildFile; productRef = DE2DA9DD18F531D07D10677E /* WaveformBackendKit */; };
+		A3B7665389D55C0C21812058 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3983E149416A899D8B41EA9 /* SettingsView.swift */; };
+		A475AE0BC250340DAD219AA6 /* SongRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0952A3CE5470484C55B3A9F1 /* SongRow.swift */; };
+		A724B558E44EDD33F771DF2B /* PlayerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3806648F65FEFA99D8E9461 /* PlayerBar.swift */; };
+		A840311239CC58B7EE1D2F15 /* AppGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75ED8D46AC336D2B84026E8D /* AppGroup.swift */; };
+		AFDD6DA44F85CCB30ABEA88B /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779A98B5787D14E8C8166494 /* LibraryView.swift */; };
+		B218BBB9DB5C4A13C6252AB2 /* WaveformWidgetsBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD06F328E7207F8D2D3AEC72 /* WaveformWidgetsBundle.swift */; };
+		B4CCBC6727EC1AB4C4E9B835 /* LikedSongsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D6462AA606248D13D22A27 /* LikedSongsView.swift */; };
+		B7DDAF70B1021602A7474748 /* TimeFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B4E9D519219241DF157DAF /* TimeFormatting.swift */; };
+		C50DE5658EB1866E348983B7 /* VaultStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6575958DDD3AFB160215507 /* VaultStore.swift */; };
+		C5BE26CB7D4A4082ABCA802B /* EmptyLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE220835023966C095738F28 /* EmptyLibraryView.swift */; };
+		C739AD17304B2FB8000F9C94 /* Info-iOS.plist in Resources */ = {isa = PBXBuildFile; fileRef = 65CB84CC6536095202F1CC2F /* Info-iOS.plist */; };
+		C7805D3D304C0E8D00502B3D /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7805D3C304C0E8D00502B3D /* Helpers.swift */; };
+		C7805D3E304C0E8D00502B3D /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7805D3C304C0E8D00502B3D /* Helpers.swift */; };
+		C7805D42304D5FB400502B3D /* PaletteKit in Frameworks */ = {isa = PBXBuildFile; productRef = C7805D41304D5FB400502B3D /* PaletteKit */; };
+		C7805D46304DC0DC00502B3D /* Waveform Icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = C7805D45304DC0DC00502B3D /* Waveform Icon.icon */; };
+		C7805D47304DC0DC00502B3D /* Waveform Icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = C7805D45304DC0DC00502B3D /* Waveform Icon.icon */; };
+		C7805D49304DC5EF00502B3D /* AccentColor.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C7805D48304DC5EF00502B3D /* AccentColor.xcassets */; };
+		C7805D4A304DC5EF00502B3D /* AccentColor.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C7805D48304DC5EF00502B3D /* AccentColor.xcassets */; };
+		C7805D4C304E13A800502B3D /* AccentColor.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C7805D48304DC5EF00502B3D /* AccentColor.xcassets */; };
+		C7805D4E304E640900502B3D /* PaletteKit in Frameworks */ = {isa = PBXBuildFile; productRef = C7805D4D304E640900502B3D /* PaletteKit */; };
+		C78FDE0CAC90B223D6FAF2CC /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8FEA2CDAA57424BB60F26E4 /* RootView.swift */; };
+		CB7B628C3AEB6D5B32B8EC51 /* ShrinkSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2295F89E61D691861D4B5F /* ShrinkSupport.swift */; };
+		CC34855066DD58AB154808F4 /* PlaylistDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D54E6F168C9635FDB6EA40 /* PlaylistDetailView.swift */; };
+		CD80D0C29C8390490E7E3D85 /* SearchDownloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A2C7AB62D91B23F30010FA /* SearchDownloadView.swift */; };
+		D15BB7D9B773BAAE5F721EEB /* PlaylistControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81449954F57B1C8EB9CBCD1C /* PlaylistControls.swift */; };
+		D38A516ACEC20826048F71C4 /* QueueActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0100BFF36E0234B1279EC779 /* QueueActions.swift */; };
+		D41741B0572EA2C0FE7FFDDD /* SongsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA46E35FCC89F068A535C52C /* SongsView.swift */; };
+		D7BE48860C2C4C0339E014C8 /* ArtistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61738BE6C4B495B77CC107ED /* ArtistsView.swift */; };
+		DA5620539878BCBBC6CC3BBE /* WaveformApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD14B835499447B3D81B8471 /* WaveformApp.swift */; };
+		DC61366679D4BCBAD432ACBC /* PlaylistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DFC947F5E77BDCBC7FC23C3 /* PlaylistsView.swift */; };
+		DD9684797A30BD36FB649C7A /* ArtistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61738BE6C4B495B77CC107ED /* ArtistsView.swift */; };
+		DDFB3BEBAF2F51B766F62C0D /* PlayerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3806648F65FEFA99D8E9461 /* PlayerBar.swift */; };
+		DF68FC5E5AE0468DC402101D /* QueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED687333FACD928FE7CF03F5 /* QueueView.swift */; };
+		EC1A33E8496ADE01BFB6CEC1 /* MediaItemCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0067CCEB57073B515D2960EE /* MediaItemCard.swift */; };
+		EDD07F0B1D58F331CB7C45AB /* VaultStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6575958DDD3AFB160215507 /* VaultStore.swift */; };
+		EEB6B7BB7316A4C8A9677CE3 /* MediaItemCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0067CCEB57073B515D2960EE /* MediaItemCard.swift */; };
+		EF0ACDF14A09B1E472BCB1AA /* SongRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0952A3CE5470484C55B3A9F1 /* SongRow.swift */; };
+		F66A90F63571D785F2999B22 /* AcquireSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06AAD5EB9BDF0130C026230D /* AcquireSettingsStore.swift */; };
+		F82AB1C63C79CCBCD1E4ECC0 /* NowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6C05F8DCAA60BD544CA2743 /* NowPlayingView.swift */; };
+		FFDBC37B1B7B59F8974CE515 /* ArtistDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33ADB6FD4DCB160B36F231D7 /* ArtistDetailView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E43A26EF27A2681D725DFF3E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4D0D7785837BA7C15B6B1929 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA7625FDE94808D0928FC755;
+			remoteInfo = WaveformWidgets;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C3A23ED9A2BCA8A265AD4854 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				8E355A97DEB961E1A02E4134 /* WaveformWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0067CCEB57073B515D2960EE /* MediaItemCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaItemCard.swift; sourceTree = "<group>"; };
+		0100BFF36E0234B1279EC779 /* QueueActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueActions.swift; sourceTree = "<group>"; };
+		02A2C7AB62D91B23F30010FA /* SearchDownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchDownloadView.swift; sourceTree = "<group>"; };
+		036341A857CCFED1A7B4B95A /* Pods-Waveform-iOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Waveform-iOS.debug.xcconfig"; path = "Target Support Files/Pods-Waveform-iOS/Pods-Waveform-iOS.debug.xcconfig"; sourceTree = "<group>"; };
+		06AAD5EB9BDF0130C026230D /* AcquireSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AcquireSettingsStore.swift; sourceTree = "<group>"; };
+		0952A3CE5470484C55B3A9F1 /* SongRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongRow.swift; sourceTree = "<group>"; };
+		0D7E621694D82850F5306F6B /* Pods-Waveform-macOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Waveform-macOS.debug.xcconfig"; path = "Target Support Files/Pods-Waveform-macOS/Pods-Waveform-macOS.debug.xcconfig"; sourceTree = "<group>"; };
+		14D54E6F168C9635FDB6EA40 /* PlaylistDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistDetailView.swift; sourceTree = "<group>"; };
+		184345356041632D93B4EA1E /* AlbumsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumsView.swift; sourceTree = "<group>"; };
+		19A7721163C1660587A9C925 /* Pods_Waveform_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Waveform_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1F195D2EAB4301543309247C /* Pods-Waveform-iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Waveform-iOS.release.xcconfig"; path = "Target Support Files/Pods-Waveform-iOS/Pods-Waveform-iOS.release.xcconfig"; sourceTree = "<group>"; };
+		2219E19BE6F04F18029BFA19 /* WaveformWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WaveformWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		266E7FE6C137A6DF75537430 /* ArtworkStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkStore.swift; sourceTree = "<group>"; };
+		2A3775E9AC08BDEF3D688AB9 /* PlaybackActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackActivityAttributes.swift; sourceTree = "<group>"; };
+		2BBD84063C095945E2554BB1 /* ShrinkSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShrinkSheet.swift; sourceTree = "<group>"; };
+		33ADB6FD4DCB160B36F231D7 /* ArtistDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDetailView.swift; sourceTree = "<group>"; };
+		3402CB7106CE48F6B019BEF1 /* SongContextMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongContextMenu.swift; sourceTree = "<group>"; };
+		3A05E07AA2B02E56DB1F71E4 /* PlaybackActivityWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackActivityWidget.swift; sourceTree = "<group>"; };
+		40D0C9A74B6226324A2BD464 /* QueueRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueRow.swift; sourceTree = "<group>"; };
+		51BF00400D986858C79E8D40 /* Waveform-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Waveform-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		61738BE6C4B495B77CC107ED /* ArtistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistsView.swift; sourceTree = "<group>"; };
+		621BF333E52FEBA94D6E101B /* Pods-WaveformWidgets.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WaveformWidgets.release.xcconfig"; path = "Target Support Files/Pods-WaveformWidgets/Pods-WaveformWidgets.release.xcconfig"; sourceTree = "<group>"; };
+		64F1D1B4B37EDC26B7676B22 /* PlaybackVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackVideoView.swift; sourceTree = "<group>"; };
+		65CB84CC6536095202F1CC2F /* Info-iOS.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Info-iOS.plist"; sourceTree = "<group>"; };
+		665C19B51DBDE7B42B9AE459 /* DeepLinkRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkRouter.swift; sourceTree = "<group>"; };
+		67B96AE97A34334A0CBA0A3D /* AlbumDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumDetailView.swift; sourceTree = "<group>"; };
+		6A37CB9452282829876D02BA /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
+		75ED8D46AC336D2B84026E8D /* AppGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroup.swift; sourceTree = "<group>"; };
+		769638418C0D3778DD73418E /* ItemDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemDetailView.swift; sourceTree = "<group>"; };
+		779A98B5787D14E8C8166494 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		7A2295F89E61D691861D4B5F /* ShrinkSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShrinkSupport.swift; sourceTree = "<group>"; };
+		7DFC947F5E77BDCBC7FC23C3 /* PlaylistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistsView.swift; sourceTree = "<group>"; };
+		81449954F57B1C8EB9CBCD1C /* PlaylistControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistControls.swift; sourceTree = "<group>"; };
+		9C3152ECC52C8E01D529DF1A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		9C35B871F92A6CE41BF62630 /* Pods-WaveformWidgets.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WaveformWidgets.debug.xcconfig"; path = "Target Support Files/Pods-WaveformWidgets/Pods-WaveformWidgets.debug.xcconfig"; sourceTree = "<group>"; };
+		A3983E149416A899D8B41EA9 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A6575958DDD3AFB160215507 /* VaultStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultStore.swift; sourceTree = "<group>"; };
+		AF9A4766DA43ADA62A1F4843 /* VLCPlaybackEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLCPlaybackEngine.swift; sourceTree = "<group>"; };
+		B2D6462AA606248D13D22A27 /* LikedSongsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedSongsView.swift; sourceTree = "<group>"; };
+		BE220835023966C095738F28 /* EmptyLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyLibraryView.swift; sourceTree = "<group>"; };
+		C1B4E9D519219241DF157DAF /* TimeFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeFormatting.swift; sourceTree = "<group>"; };
+		C32BF57598BCC0EBBE016A37 /* Pods_WaveformWidgets.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WaveformWidgets.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C3806648F65FEFA99D8E9461 /* PlayerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerBar.swift; sourceTree = "<group>"; };
+		C413B9A89906A8D5A2E00550 /* DownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadManager.swift; sourceTree = "<group>"; };
+		C7805D3C304C0E8D00502B3D /* Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
+		C7805D3F304D04B800502B3D /* BridgingHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BridgingHeader.h; sourceTree = "<group>"; };
+		C7805D45304DC0DC00502B3D /* Waveform Icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Waveform Icon.icon"; sourceTree = "<group>"; };
+		C7805D48304DC5EF00502B3D /* AccentColor.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = AccentColor.xcassets; sourceTree = "<group>"; };
+		C8FEA2CDAA57424BB60F26E4 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		CD06F328E7207F8D2D3AEC72 /* WaveformWidgetsBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformWidgetsBundle.swift; sourceTree = "<group>"; };
+		CD14B835499447B3D81B8471 /* WaveformApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformApp.swift; sourceTree = "<group>"; };
+		D6C05F8DCAA60BD544CA2743 /* NowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingView.swift; sourceTree = "<group>"; };
+		D6DEC17B82C54859DADF9A87 /* ArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkView.swift; sourceTree = "<group>"; };
+		E6267AF6DAAED22919EFBF8C /* Waveform-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Waveform-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E74708B19DA3B52DBF9C6CC2 /* PaletteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteStore.swift; sourceTree = "<group>"; };
+		E7B870A77347340AB421A6B8 /* Info-macOS.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Info-macOS.plist"; sourceTree = "<group>"; };
+		EA46E35FCC89F068A535C52C /* SongsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongsView.swift; sourceTree = "<group>"; };
+		ED687333FACD928FE7CF03F5 /* QueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueView.swift; sourceTree = "<group>"; };
+		F641B865BF1C387D071AB451 /* Pods_Waveform_iOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Waveform_iOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		F693810B13A137E7E828FFEB /* Pods-Waveform-macOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Waveform-macOS.release.xcconfig"; path = "Target Support Files/Pods-Waveform-macOS/Pods-Waveform-macOS.release.xcconfig"; sourceTree = "<group>"; };
+		F981BF2E3F0DC7F9C42BCDB3 /* WaveformBackendKit */ = {isa = PBXFileReference; lastKnownFileType = folder; path = WaveformBackendKit; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		03AB14DEAAE511BE5E29A978 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A09C4B04D74CE1AF930445B3 /* WaveformBackendKit in Frameworks */,
+				28812F6AC9A4705321E1A90D /* Pods_Waveform_iOS.framework in Frameworks */,
+				C7805D42304D5FB400502B3D /* PaletteKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		11367F3F34152F003B929274 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0E20AD50A1DA23ED2531229E /* WaveformBackendKit in Frameworks */,
+				55F2514C25D80152E2E82893 /* Pods_Waveform_macOS.framework in Frameworks */,
+				C7805D4E304E640900502B3D /* PaletteKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		19B56C15F31C3AC15608AFAB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				19AEDC97692567EF5C6CD3F4 /* Pods_WaveformWidgets.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		09D5371D4B9F14E29941F091 /* WaveformShared */ = {
+			isa = PBXGroup;
+			children = (
+				75ED8D46AC336D2B84026E8D /* AppGroup.swift */,
+				2A3775E9AC08BDEF3D688AB9 /* PlaybackActivityAttributes.swift */,
+			);
+			path = WaveformShared;
+			sourceTree = "<group>";
+		};
+		118E752F06A499B2CBB513ED /* Albums */ = {
+			isa = PBXGroup;
+			children = (
+				67B96AE97A34334A0CBA0A3D /* AlbumDetailView.swift */,
+				184345356041632D93B4EA1E /* AlbumsView.swift */,
+			);
+			path = Albums;
+			sourceTree = "<group>";
+		};
+		1EC6AA6BF7DCE49216D9B5DD /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				F981BF2E3F0DC7F9C42BCDB3 /* WaveformBackendKit */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		2EDB8F9B2DD19155989AF449 /* Player */ = {
+			isa = PBXGroup;
+			children = (
+				D6C05F8DCAA60BD544CA2743 /* NowPlayingView.swift */,
+				64F1D1B4B37EDC26B7676B22 /* PlaybackVideoView.swift */,
+				C3806648F65FEFA99D8E9461 /* PlayerBar.swift */,
+				AF9A4766DA43ADA62A1F4843 /* VLCPlaybackEngine.swift */,
+			);
+			path = Player;
+			sourceTree = "<group>";
+		};
+		512F1AD111801CCC645723CE /* Stores */ = {
+			isa = PBXGroup;
+			children = (
+				06AAD5EB9BDF0130C026230D /* AcquireSettingsStore.swift */,
+				266E7FE6C137A6DF75537430 /* ArtworkStore.swift */,
+				665C19B51DBDE7B42B9AE459 /* DeepLinkRouter.swift */,
+				C413B9A89906A8D5A2E00550 /* DownloadManager.swift */,
+				6A37CB9452282829876D02BA /* LiveActivityManager.swift */,
+				E74708B19DA3B52DBF9C6CC2 /* PaletteStore.swift */,
+				A6575958DDD3AFB160215507 /* VaultStore.swift */,
+			);
+			path = Stores;
+			sourceTree = "<group>";
+		};
+		532DA3BA399921140CC3E96F /* Queue */ = {
+			isa = PBXGroup;
+			children = (
+				40D0C9A74B6226324A2BD464 /* QueueRow.swift */,
+				ED687333FACD928FE7CF03F5 /* QueueView.swift */,
+			);
+			path = Queue;
+			sourceTree = "<group>";
+		};
+		5384929A66DDFEA197755A8B /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				C7805D3C304C0E8D00502B3D /* Helpers.swift */,
+				D6DEC17B82C54859DADF9A87 /* ArtworkView.swift */,
+				81449954F57B1C8EB9CBCD1C /* PlaylistControls.swift */,
+				0100BFF36E0234B1279EC779 /* QueueActions.swift */,
+				3402CB7106CE48F6B019BEF1 /* SongContextMenu.swift */,
+				0952A3CE5470484C55B3A9F1 /* SongRow.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		5453E2B5A064F2A01DF04D8E /* Library */ = {
+			isa = PBXGroup;
+			children = (
+				BE220835023966C095738F28 /* EmptyLibraryView.swift */,
+				769638418C0D3778DD73418E /* ItemDetailView.swift */,
+				779A98B5787D14E8C8166494 /* LibraryView.swift */,
+				0067CCEB57073B515D2960EE /* MediaItemCard.swift */,
+				2BBD84063C095945E2554BB1 /* ShrinkSheet.swift */,
+				EA46E35FCC89F068A535C52C /* SongsView.swift */,
+			);
+			path = Library;
+			sourceTree = "<group>";
+		};
+		789C01205FA4B3313C3D6CBE = {
+			isa = PBXGroup;
+			children = (
+				1EC6AA6BF7DCE49216D9B5DD /* Packages */,
+				83159BFBA086A6568E280E3A /* Waveform */,
+				09D5371D4B9F14E29941F091 /* WaveformShared */,
+				9C20D2B880EC03828DC808BD /* WaveformWidgets */,
+				D0EB30F59A2CB8C225EEE21B /* Products */,
+				E48AEC523D1BB7E9E89CA728 /* Pods */,
+				BB51268973DA0BB9E2FB6B44 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		83159BFBA086A6568E280E3A /* Waveform */ = {
+			isa = PBXGroup;
+			children = (
+				C7805D3F304D04B800502B3D /* BridgingHeader.h */,
+				65CB84CC6536095202F1CC2F /* Info-iOS.plist */,
+				E7B870A77347340AB421A6B8 /* Info-macOS.plist */,
+				CD14B835499447B3D81B8471 /* WaveformApp.swift */,
+				512F1AD111801CCC645723CE /* Stores */,
+				BB046647FC33D286C67CFC99 /* Utilities */,
+				8E8F76213654049E7C096D18 /* Views */,
+				C7805D45304DC0DC00502B3D /* Waveform Icon.icon */,
+				C7805D48304DC5EF00502B3D /* AccentColor.xcassets */,
+			);
+			path = Waveform;
+			sourceTree = "<group>";
+		};
+		8559A7C64A718D47C7554B13 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				A3983E149416A899D8B41EA9 /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		8E8F76213654049E7C096D18 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				C8FEA2CDAA57424BB60F26E4 /* RootView.swift */,
+				118E752F06A499B2CBB513ED /* Albums */,
+				B5A27084FFB7517A7FFCDA20 /* Artists */,
+				5453E2B5A064F2A01DF04D8E /* Library */,
+				2EDB8F9B2DD19155989AF449 /* Player */,
+				A56E9C2AF7EB17C6E4795FD7 /* Playlists */,
+				532DA3BA399921140CC3E96F /* Queue */,
+				9B98513BACBB6094B1D5E0F6 /* Search */,
+				8559A7C64A718D47C7554B13 /* Settings */,
+				5384929A66DDFEA197755A8B /* Shared */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		9B98513BACBB6094B1D5E0F6 /* Search */ = {
+			isa = PBXGroup;
+			children = (
+				02A2C7AB62D91B23F30010FA /* SearchDownloadView.swift */,
+			);
+			path = Search;
+			sourceTree = "<group>";
+		};
+		9C20D2B880EC03828DC808BD /* WaveformWidgets */ = {
+			isa = PBXGroup;
+			children = (
+				9C3152ECC52C8E01D529DF1A /* Info.plist */,
+				3A05E07AA2B02E56DB1F71E4 /* PlaybackActivityWidget.swift */,
+				CD06F328E7207F8D2D3AEC72 /* WaveformWidgetsBundle.swift */,
+			);
+			path = WaveformWidgets;
+			sourceTree = "<group>";
+		};
+		A56E9C2AF7EB17C6E4795FD7 /* Playlists */ = {
+			isa = PBXGroup;
+			children = (
+				B2D6462AA606248D13D22A27 /* LikedSongsView.swift */,
+				14D54E6F168C9635FDB6EA40 /* PlaylistDetailView.swift */,
+				7DFC947F5E77BDCBC7FC23C3 /* PlaylistsView.swift */,
+			);
+			path = Playlists;
+			sourceTree = "<group>";
+		};
+		B5A27084FFB7517A7FFCDA20 /* Artists */ = {
+			isa = PBXGroup;
+			children = (
+				33ADB6FD4DCB160B36F231D7 /* ArtistDetailView.swift */,
+				61738BE6C4B495B77CC107ED /* ArtistsView.swift */,
+			);
+			path = Artists;
+			sourceTree = "<group>";
+		};
+		BB046647FC33D286C67CFC99 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				7A2295F89E61D691861D4B5F /* ShrinkSupport.swift */,
+				C1B4E9D519219241DF157DAF /* TimeFormatting.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		BB51268973DA0BB9E2FB6B44 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F641B865BF1C387D071AB451 /* Pods_Waveform_iOS.framework */,
+				19A7721163C1660587A9C925 /* Pods_Waveform_macOS.framework */,
+				C32BF57598BCC0EBBE016A37 /* Pods_WaveformWidgets.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D0EB30F59A2CB8C225EEE21B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				51BF00400D986858C79E8D40 /* Waveform-iOS.app */,
+				E6267AF6DAAED22919EFBF8C /* Waveform-macOS.app */,
+				2219E19BE6F04F18029BFA19 /* WaveformWidgets.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E48AEC523D1BB7E9E89CA728 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				036341A857CCFED1A7B4B95A /* Pods-Waveform-iOS.debug.xcconfig */,
+				1F195D2EAB4301543309247C /* Pods-Waveform-iOS.release.xcconfig */,
+				0D7E621694D82850F5306F6B /* Pods-Waveform-macOS.debug.xcconfig */,
+				F693810B13A137E7E828FFEB /* Pods-Waveform-macOS.release.xcconfig */,
+				9C35B871F92A6CE41BF62630 /* Pods-WaveformWidgets.debug.xcconfig */,
+				621BF333E52FEBA94D6E101B /* Pods-WaveformWidgets.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		383EE92E6FEF1EE8C7520E25 /* Waveform-iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C78FD2AFF20B704A497FACE4 /* Build configuration list for PBXNativeTarget "Waveform-iOS" */;
+			buildPhases = (
+				A09447A06CB35D7B48106D41 /* [CP] Check Pods Manifest.lock */,
+				89D4626941D3930C39F4B5B1 /* Sources */,
+				EBC435C1945AB4D9BD901A20 /* Resources */,
+				03AB14DEAAE511BE5E29A978 /* Frameworks */,
+				C3A23ED9A2BCA8A265AD4854 /* Embed Foundation Extensions */,
+				25B52750C7CEB9E92AF497DD /* [CP] Embed Pods Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D1446A62AB2701CCE9CB58E4 /* PBXTargetDependency */,
+			);
+			name = "Waveform-iOS";
+			packageProductDependencies = (
+				DE2DA9DD18F531D07D10677E /* WaveformBackendKit */,
+				C7805D41304D5FB400502B3D /* PaletteKit */,
+			);
+			productName = "Waveform-iOS";
+			productReference = 51BF00400D986858C79E8D40 /* Waveform-iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AA7625FDE94808D0928FC755 /* WaveformWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F46C745309FC33C532F6C71A /* Build configuration list for PBXNativeTarget "WaveformWidgets" */;
+			buildPhases = (
+				A86DE806E806E45D0B13DE61 /* [CP] Check Pods Manifest.lock */,
+				B40C7BCB1968D9E7E53038C0 /* Sources */,
+				19B56C15F31C3AC15608AFAB /* Frameworks */,
+				C7805D4B304E139B00502B3D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WaveformWidgets;
+			productName = WaveformWidgets;
+			productReference = 2219E19BE6F04F18029BFA19 /* WaveformWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		E7B092AF4A9295FE2B595643 /* Waveform-macOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D38A836D4EB8D1C2CE531736 /* Build configuration list for PBXNativeTarget "Waveform-macOS" */;
+			buildPhases = (
+				00AB60B6D01BCDF32AFBCE86 /* [CP] Check Pods Manifest.lock */,
+				785DF13F739683C9A134E83D /* Sources */,
+				9642990EBE1548DDFDFC3D23 /* Resources */,
+				11367F3F34152F003B929274 /* Frameworks */,
+				DC5E3292AB808E9C9078D59F /* [CP] Embed Pods Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Waveform-macOS";
+			packageProductDependencies = (
+				77020CA50C1CDA250D487B25 /* WaveformBackendKit */,
+				C7805D4D304E640900502B3D /* PaletteKit */,
+			);
+			productName = "Waveform-macOS";
+			productReference = E6267AF6DAAED22919EFBF8C /* Waveform-macOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4D0D7785837BA7C15B6B1929 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+			};
+			buildConfigurationList = 543CC8AA7B76E2FDBD3DAD76 /* Build configuration list for PBXProject "Waveform" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 789C01205FA4B3313C3D6CBE;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				AD051848E31E64D670E4A0F5 /* XCLocalSwiftPackageReference "WaveformBackendKit" */,
+				C7805D3B304BBDD500502B3D /* XCRemoteSwiftPackageReference "YouTubeSDK" */,
+				C7805D40304D5FB400502B3D /* XCRemoteSwiftPackageReference "PaletteKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = D0EB30F59A2CB8C225EEE21B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				383EE92E6FEF1EE8C7520E25 /* Waveform-iOS */,
+				E7B092AF4A9295FE2B595643 /* Waveform-macOS */,
+				AA7625FDE94808D0928FC755 /* WaveformWidgets */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		9642990EBE1548DDFDFC3D23 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C7805D49304DC5EF00502B3D /* AccentColor.xcassets in Resources */,
+				308B21E7EC2C8FA30D4A2670 /* Info-iOS.plist in Resources */,
+				C7805D46304DC0DC00502B3D /* Waveform Icon.icon in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C7805D4B304E139B00502B3D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C7805D4C304E13A800502B3D /* AccentColor.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EBC435C1945AB4D9BD901A20 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C7805D4A304DC5EF00502B3D /* AccentColor.xcassets in Resources */,
+				C739AD17304B2FB8000F9C94 /* Info-iOS.plist in Resources */,
+				C7805D47304DC0DC00502B3D /* Waveform Icon.icon in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		00AB60B6D01BCDF32AFBCE86 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Waveform-macOS-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		25B52750C7CEB9E92AF497DD /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Waveform-iOS/Pods-Waveform-iOS-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Waveform-iOS/Pods-Waveform-iOS-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Waveform-iOS/Pods-Waveform-iOS-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		A09447A06CB35D7B48106D41 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Waveform-iOS-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		A86DE806E806E45D0B13DE61 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-WaveformWidgets-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		DC5E3292AB808E9C9078D59F /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Waveform-macOS/Pods-Waveform-macOS-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Waveform-macOS/Pods-Waveform-macOS-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Waveform-macOS/Pods-Waveform-macOS-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		785DF13F739683C9A134E83D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C7805D3D304C0E8D00502B3D /* Helpers.swift in Sources */,
+				5013A599BCA0407BABCFB9C2 /* AcquireSettingsStore.swift in Sources */,
+				11D5423C552F5B9C6632A888 /* AlbumDetailView.swift in Sources */,
+				017F8AD0ED148BD0F292F5FF /* AlbumsView.swift in Sources */,
+				FFDBC37B1B7B59F8974CE515 /* ArtistDetailView.swift in Sources */,
+				DD9684797A30BD36FB649C7A /* ArtistsView.swift in Sources */,
+				8C058DD38462F3A1683C9F70 /* ArtworkStore.swift in Sources */,
+				795B5A9215E15449D58676AE /* ArtworkView.swift in Sources */,
+				0119C157198CE713F790EF51 /* DeepLinkRouter.swift in Sources */,
+				7D88169C38FA73B9B6AC7736 /* DownloadManager.swift in Sources */,
+				C5BE26CB7D4A4082ABCA802B /* EmptyLibraryView.swift in Sources */,
+				7A6BD7845EDFB76D6F4E420A /* ItemDetailView.swift in Sources */,
+				AFDD6DA44F85CCB30ABEA88B /* LibraryView.swift in Sources */,
+				B4CCBC6727EC1AB4C4E9B835 /* LikedSongsView.swift in Sources */,
+				486B5699C277581613EF18AE /* LiveActivityManager.swift in Sources */,
+				EEB6B7BB7316A4C8A9677CE3 /* MediaItemCard.swift in Sources */,
+				F82AB1C63C79CCBCD1E4ECC0 /* NowPlayingView.swift in Sources */,
+				54297B8AAC8230CD6EACC7EE /* PaletteStore.swift in Sources */,
+				510A2F33AEB428CB3FCA683C /* PlaybackVideoView.swift in Sources */,
+				DDFB3BEBAF2F51B766F62C0D /* PlayerBar.swift in Sources */,
+				873475A4877208DCBE1F2C44 /* PlaylistControls.swift in Sources */,
+				8DCFDED0B1CACA5EF012428D /* PlaylistDetailView.swift in Sources */,
+				27D74FD65A7276FC18DC3651 /* PlaylistsView.swift in Sources */,
+				D38A516ACEC20826048F71C4 /* QueueActions.swift in Sources */,
+				27566D1B3406C2E7B61FD72F /* QueueRow.swift in Sources */,
+				DF68FC5E5AE0468DC402101D /* QueueView.swift in Sources */,
+				807566F8FBE0DE60E7AC9DB4 /* RootView.swift in Sources */,
+				511A63922156E35A7E0D2F5F /* SearchDownloadView.swift in Sources */,
+				72A07CD3098F3FD7134997D0 /* SettingsView.swift in Sources */,
+				0922E0FABF62E317E2081210 /* ShrinkSheet.swift in Sources */,
+				10CD544CA28CCCB518731CD4 /* ShrinkSupport.swift in Sources */,
+				7A5D2BC7B78A7F9DABB91CD9 /* SongContextMenu.swift in Sources */,
+				EF0ACDF14A09B1E472BCB1AA /* SongRow.swift in Sources */,
+				0EB5B3F38C9302112D013E79 /* SongsView.swift in Sources */,
+				B7DDAF70B1021602A7474748 /* TimeFormatting.swift in Sources */,
+				5D3F5F14086AECB7F3AEF9F6 /* VLCPlaybackEngine.swift in Sources */,
+				C50DE5658EB1866E348983B7 /* VaultStore.swift in Sources */,
+				DA5620539878BCBBC6CC3BBE /* WaveformApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		89D4626941D3930C39F4B5B1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F66A90F63571D785F2999B22 /* AcquireSettingsStore.swift in Sources */,
+				51E04CBBCDAD0D4A6056F289 /* AlbumDetailView.swift in Sources */,
+				88CC244B3DFAE21321C25B0E /* AlbumsView.swift in Sources */,
+				27927561648978C5473FFA9B /* AppGroup.swift in Sources */,
+				4AEE260D2235F360AAB5D8EB /* ArtistDetailView.swift in Sources */,
+				D7BE48860C2C4C0339E014C8 /* ArtistsView.swift in Sources */,
+				C7805D3E304C0E8D00502B3D /* Helpers.swift in Sources */,
+				46B69FB2662F659F88737C21 /* ArtworkStore.swift in Sources */,
+				7E5633D61BAF0603DE00C3F1 /* ArtworkView.swift in Sources */,
+				2F6A120B6A2EEDC714C0DF74 /* DeepLinkRouter.swift in Sources */,
+				75AE2923F043652490DAFB2E /* DownloadManager.swift in Sources */,
+				328B6C5F93A4016E3B50F8B2 /* EmptyLibraryView.swift in Sources */,
+				3CDCAEE86D1E6F75D45AF7A4 /* ItemDetailView.swift in Sources */,
+				75414B1EF5D2F8F7E5BB1B8B /* LibraryView.swift in Sources */,
+				89905E6067EF69F59835C481 /* LikedSongsView.swift in Sources */,
+				06A9C5595517A1C74C12A2D1 /* LiveActivityManager.swift in Sources */,
+				EC1A33E8496ADE01BFB6CEC1 /* MediaItemCard.swift in Sources */,
+				203362DE7FCA2D683037078E /* NowPlayingView.swift in Sources */,
+				6D71A841CB75B0C141A105C7 /* PaletteStore.swift in Sources */,
+				9C9403D3E54F943E4A98ECB0 /* PlaybackActivityAttributes.swift in Sources */,
+				0195C6E68593110047010408 /* PlaybackVideoView.swift in Sources */,
+				A724B558E44EDD33F771DF2B /* PlayerBar.swift in Sources */,
+				D15BB7D9B773BAAE5F721EEB /* PlaylistControls.swift in Sources */,
+				CC34855066DD58AB154808F4 /* PlaylistDetailView.swift in Sources */,
+				DC61366679D4BCBAD432ACBC /* PlaylistsView.swift in Sources */,
+				5801A8845D7DEEBBC090C736 /* QueueActions.swift in Sources */,
+				1E6263EB399858DCB5CCE407 /* QueueRow.swift in Sources */,
+				6C12DF16B7AACD4D5E217784 /* QueueView.swift in Sources */,
+				C78FDE0CAC90B223D6FAF2CC /* RootView.swift in Sources */,
+				CD80D0C29C8390490E7E3D85 /* SearchDownloadView.swift in Sources */,
+				A3B7665389D55C0C21812058 /* SettingsView.swift in Sources */,
+				9D76CEF1C3E60E9C4C241993 /* ShrinkSheet.swift in Sources */,
+				CB7B628C3AEB6D5B32B8EC51 /* ShrinkSupport.swift in Sources */,
+				94043F70DC95451E776467B8 /* SongContextMenu.swift in Sources */,
+				A475AE0BC250340DAD219AA6 /* SongRow.swift in Sources */,
+				D41741B0572EA2C0FE7FFDDD /* SongsView.swift in Sources */,
+				73A7D370D2AA0D7105979F69 /* TimeFormatting.swift in Sources */,
+				6D10F8A9CCA28AA5747130AE /* VLCPlaybackEngine.swift in Sources */,
+				EDD07F0B1D58F331CB7C45AB /* VaultStore.swift in Sources */,
+				6B8514EE2811F2CABACF2872 /* WaveformApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B40C7BCB1968D9E7E53038C0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A840311239CC58B7EE1D2F15 /* AppGroup.swift in Sources */,
+				370BC7D50DBACEBDBE2C8DB2 /* PlaybackActivityAttributes.swift in Sources */,
+				4F86456B0B47DEA2DF6095F3 /* PlaybackActivityWidget.swift in Sources */,
+				B218BBB9DB5C4A13C6252AB2 /* WaveformWidgetsBundle.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D1446A62AB2701CCE9CB58E4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA7625FDE94808D0928FC755 /* WaveformWidgets */;
+			targetProxy = E43A26EF27A2681D725DFF3E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		5A7634B7BE098EBA12C31BE0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		68FB19F2F1B0350C02A8893F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		73ADF10883AB0026AFC2DDBF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9C35B871F92A6CE41BF62630 /* Pods-WaveformWidgets.debug.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = WaveformWidgets/WaveformWidgets.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 98M66S5PL8;
+				INFOPLIST_FILE = WaveformWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 18;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aspen.waveform.WaveformWidgets;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8E38F47550E74E46A6B547A6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1F195D2EAB4301543309247C /* Pods-Waveform-iOS.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "Waveform Icon";
+				"ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME[sdk=*]" = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Waveform/Waveform-iOS.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 98M66S5PL8;
+				INFOPLIST_FILE = "Waveform/Info-iOS.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Waveform;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				IPHONEOS_DEPLOYMENT_TARGET = 18;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aspen.waveform;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		9D76B66CB6060DC993644C24 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0D7E621694D82850F5306F6B /* Pods-Waveform-macOS.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "Waveform Icon";
+				"ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME[sdk=*]" = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Waveform/Waveform-macOS.entitlements";
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = 98M66S5PL8;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = YES;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				INFOPLIST_FILE = "Waveform/Info-macOS.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Waveform;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aspen.waveform.mac;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		A1BFC97076136E96F6BC440B /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 621BF333E52FEBA94D6E101B /* Pods-WaveformWidgets.release.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = WaveformWidgets/WaveformWidgets.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 98M66S5PL8;
+				INFOPLIST_FILE = WaveformWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 18;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aspen.waveform.WaveformWidgets;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C30F61E4F747E746D7A05F7D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 036341A857CCFED1A7B4B95A /* Pods-Waveform-iOS.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "Waveform Icon";
+				"ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME[sdk=*]" = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Waveform/Waveform-iOS.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 98M66S5PL8;
+				INFOPLIST_FILE = "Waveform/Info-iOS.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Waveform;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				IPHONEOS_DEPLOYMENT_TARGET = 18;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aspen.waveform;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C6F1FABBFBA30976B926A188 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F693810B13A137E7E828FFEB /* Pods-Waveform-macOS.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "Waveform Icon";
+				"ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME[sdk=*]" = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Waveform/Waveform-macOS.entitlements";
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = 98M66S5PL8;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = YES;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				INFOPLIST_FILE = "Waveform/Info-macOS.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Waveform;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aspen.waveform.mac;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		543CC8AA7B76E2FDBD3DAD76 /* Build configuration list for PBXProject "Waveform" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				68FB19F2F1B0350C02A8893F /* Debug */,
+				5A7634B7BE098EBA12C31BE0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C78FD2AFF20B704A497FACE4 /* Build configuration list for PBXNativeTarget "Waveform-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C30F61E4F747E746D7A05F7D /* Debug */,
+				8E38F47550E74E46A6B547A6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D38A836D4EB8D1C2CE531736 /* Build configuration list for PBXNativeTarget "Waveform-macOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9D76B66CB6060DC993644C24 /* Debug */,
+				C6F1FABBFBA30976B926A188 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F46C745309FC33C532F6C71A /* Build configuration list for PBXNativeTarget "WaveformWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				73ADF10883AB0026AFC2DDBF /* Debug */,
+				A1BFC97076136E96F6BC440B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		AD051848E31E64D670E4A0F5 /* XCLocalSwiftPackageReference "WaveformBackendKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = WaveformBackendKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C7805D3B304BBDD500502B3D /* XCRemoteSwiftPackageReference "YouTubeSDK" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/atpugvaraa/YouTubeSDK";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		C7805D40304D5FB400502B3D /* XCRemoteSwiftPackageReference "PaletteKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/2dubu/PaletteKit";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		77020CA50C1CDA250D487B25 /* WaveformBackendKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = WaveformBackendKit;
+		};
+		C7805D41304D5FB400502B3D /* PaletteKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C7805D40304D5FB400502B3D /* XCRemoteSwiftPackageReference "PaletteKit" */;
+			productName = PaletteKit;
+		};
+		C7805D4D304E640900502B3D /* PaletteKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C7805D40304D5FB400502B3D /* XCRemoteSwiftPackageReference "PaletteKit" */;
+			productName = PaletteKit;
+		};
+		DE2DA9DD18F531D07D10677E /* WaveformBackendKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = WaveformBackendKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 4D0D7785837BA7C15B6B1929 /* Project object */;
+}

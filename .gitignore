@@ -1,0 +1,23 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# CocoaPods — Podfile and Podfile.lock ARE tracked, just not the fetched pods themselves
+Pods/
+
+# macOS junk
+.DS_Store
+
+# Common macOS "couldn't merge" duplicate-folder artifacts (rename/remove these manually first —
+# this line just stops NEW ones from sneaking in, it won't retroactively fix ones already on disk)
+*/Sources 2/
+*/Sources 3/

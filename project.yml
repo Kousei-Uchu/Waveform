@@ -1,0 +1,126 @@
+name: Waveform
+options:
+  bundleIdPrefix: com.yourname
+  deploymentTarget:
+    iOS: "16.0"
+    macOS: "13.0"
+  createIntermediateGroups: true
+
+packages:
+  WaveformBackendKit:
+    path: WaveformBackendKit
+
+targets:
+  Waveform-iOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: Waveform
+        excludes:
+          - "Waveform-macOS.entitlements"
+          - "Waveform-iOS.entitlements"
+      - path: WaveformShared
+    dependencies:
+      - package: WaveformBackendKit
+        product: WaveformBackendKit
+      - target: WaveformWidgets
+        embed: true
+    info:
+      path: Waveform/Info-iOS.plist
+      properties:
+        CFBundleDisplayName: Waveform
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        # Required for the Dynamic Island / Lock Screen Live Activity.
+        NSSupportsLiveActivities: true
+        # waveform://now-playing — tapping the Live Activity opens the app
+        # straight to Now Playing; see DeepLinkRouter.
+        CFBundleURLTypes:
+          - CFBundleURLSchemes:
+              - waveform
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourname.waveform
+        SWIFT_VERSION: "5.9"
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_ENTITLEMENTS: Waveform/Waveform-iOS.entitlements
+
+  Waveform-macOS:
+    type: application
+    platform: macOS
+    # Deliberately just `Waveform/`, not `WaveformShared/` — Live
+    # Activities are iPhone-only, and
+    # `WaveformShared/PlaybackActivityAttributes.swift` does an
+    # unguarded `import ActivityKit`. Whether that module is even
+    # importable on macOS isn't something this pass could verify, so the
+    # safe choice is to keep it out of this target's sources entirely
+    # rather than risk breaking the macOS build on an unverified guess.
+    sources:
+      - path: Waveform
+        excludes:
+          - "Waveform-macOS.entitlements"
+          - "Waveform-iOS.entitlements"
+    dependencies:
+      - package: WaveformBackendKit
+        product: WaveformBackendKit
+    info:
+      path: Waveform/Info-macOS.plist
+      properties:
+        CFBundleDisplayName: Waveform
+        LSMinimumSystemVersion: "13.0"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourname.waveform.mac
+        SWIFT_VERSION: "5.9"
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        ENABLE_HARDENED_RUNTIME: true
+        CODE_SIGN_ENTITLEMENTS: Waveform/Waveform-macOS.entitlements
+
+  WaveformWidgets:
+    type: app-extension
+    platform: iOS
+    # Floored higher than the app itself: this target's only job is the
+    # Live Activity, which needs the modern `ActivityContent`-based API
+    # (iOS 16.2+) — the *app* stays at 16.0 and just skips Live Activity
+    # features on older devices via `#available` checks.
+    deploymentTarget: "16.2"
+    sources:
+      - path: WaveformWidgets
+        excludes:
+          - "WaveformWidgets.entitlements"
+      - path: WaveformShared
+    info:
+      path: WaveformWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Waveform Widgets
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourname.waveform.WaveformWidgets
+        SWIFT_VERSION: "5.9"
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_ENTITLEMENTS: WaveformWidgets/WaveformWidgets.entitlements
+
+# Explicit `schemes:` block rather than relying on XcodeGen's default
+# scheme generation — that default behavior turned out to be genuinely
+# unclear from the docs (an old GitHub issue on the project describes
+# shared schemes as *only* being generated when defined in `schemes` or
+# a target's own `scheme:` property), so this spells it out instead of
+# assuming.
+schemes:
+  Waveform-iOS:
+    build:
+      targets:
+        Waveform-iOS: all
+        WaveformWidgets: all
+  Waveform-macOS:
+    build:
+      targets:
+        Waveform-macOS: all
