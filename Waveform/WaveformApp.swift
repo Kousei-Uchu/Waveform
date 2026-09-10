@@ -14,6 +14,7 @@ struct WaveformApp: App {
     @StateObject private var liveActivity = LiveActivityManager()
     @StateObject private var router = DeepLinkRouter()
     @StateObject private var downloadManager: DownloadManager
+    @ObservedObject private var accessibility = AccessibilitySettingsStore.shared
     // Spotify client id/secret + optional Genius token (§8's Settings
     // additions) — `Search.pipeline`/`Match.pickVideoSource` read these
     // via `AcquireSettingsStore.spotifyClient`/`.geniusClient`, both of
@@ -91,6 +92,7 @@ struct WaveformApp: App {
                     .environmentObject(router)
                     .environmentObject(downloadManager)
                     .environmentObject(acquireSettings)
+                    .environmentObject(accessibility)
                     .task {
                         library.load()
                     }
@@ -106,7 +108,7 @@ struct WaveformApp: App {
                         palette.currentItemID = queue.current?.playable.id
                         loadTintIfNeeded(for: queue.current)
                     }
-                    .tint(palette.currentSecondaryTint ?? .stableAccent)
+                    .tint(palette.currentSecondaryTint ?? .stableSecondary)
                     .animation(.easeInOut(duration: 1), value: palette.currentTint)
                     .background(Color.clear)
                     .accentColor(.stableAccent)
@@ -217,4 +219,11 @@ extension Color {
     /// the symbolic `.accentColor`, so it doesn't depend on window/trait
     /// timing when converted to UIColor for HSB math.
     static let stableAccent = Color("AccentColor")
+
+    /// Companion to `stableAccent` — the fixed system-theme fallback for
+    /// `currentSecondaryTint`, same role `stableAccent` plays for
+    /// `currentTint`. Backed by a `SecondaryAccentColor` asset you need to
+    /// add to the catalog (see `SecondaryAccentColor.colorset/Contents.json`)
+    /// — pick light/dark values that pair well with `AccentColor`'s.
+    static let stableSecondary = Color("SecondaryAccentColor")
 }

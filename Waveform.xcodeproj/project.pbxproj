@@ -75,6 +75,12 @@
 		C50DE5658EB1866E348983B7 /* VaultStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6575958DDD3AFB160215507 /* VaultStore.swift */; };
 		C5BE26CB7D4A4082ABCA802B /* EmptyLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE220835023966C095738F28 /* EmptyLibraryView.swift */; };
 		C739AD17304B2FB8000F9C94 /* Info-iOS.plist in Resources */ = {isa = PBXBuildFile; fileRef = 65CB84CC6536095202F1CC2F /* Info-iOS.plist */; };
+		C73BDECE305060D700F30CD9 /* AccessibilitySettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73BDECD305060D700F30CD9 /* AccessibilitySettingsStore.swift */; };
+		C73BDECF305060D700F30CD9 /* AccessibilitySettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73BDECD305060D700F30CD9 /* AccessibilitySettingsStore.swift */; };
+		C73BDED13050614200F30CD9 /* WCAGCompliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73BDED03050614200F30CD9 /* WCAGCompliance.swift */; };
+		C73BDED23050614200F30CD9 /* WCAGCompliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73BDED03050614200F30CD9 /* WCAGCompliance.swift */; };
+		C73BDED43050620500F30CD9 /* OpenDyslexic-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = C73BDED33050620500F30CD9 /* OpenDyslexic-Regular.otf */; };
+		C73BDED53050620500F30CD9 /* OpenDyslexic-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = C73BDED33050620500F30CD9 /* OpenDyslexic-Regular.otf */; };
 		C7805D3D304C0E8D00502B3D /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7805D3C304C0E8D00502B3D /* Helpers.swift */; };
 		C7805D3E304C0E8D00502B3D /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7805D3C304C0E8D00502B3D /* Helpers.swift */; };
 		C7805D42304D5FB400502B3D /* PaletteKit in Frameworks */ = {isa = PBXBuildFile; productRef = C7805D41304D5FB400502B3D /* PaletteKit */; };
@@ -175,6 +181,9 @@
 		C32BF57598BCC0EBBE016A37 /* Pods_WaveformWidgets.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WaveformWidgets.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3806648F65FEFA99D8E9461 /* PlayerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerBar.swift; sourceTree = "<group>"; };
 		C413B9A89906A8D5A2E00550 /* DownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadManager.swift; sourceTree = "<group>"; };
+		C73BDECD305060D700F30CD9 /* AccessibilitySettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilitySettingsStore.swift; sourceTree = "<group>"; };
+		C73BDED03050614200F30CD9 /* WCAGCompliance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WCAGCompliance.swift; sourceTree = "<group>"; };
+		C73BDED33050620500F30CD9 /* OpenDyslexic-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenDyslexic-Regular.otf"; sourceTree = "<group>"; };
 		C7805D3C304C0E8D00502B3D /* Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
 		C7805D3F304D04B800502B3D /* BridgingHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BridgingHeader.h; sourceTree = "<group>"; };
 		C7805D45304DC0DC00502B3D /* Waveform Icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Waveform Icon.icon"; sourceTree = "<group>"; };
@@ -266,6 +275,7 @@
 		512F1AD111801CCC645723CE /* Stores */ = {
 			isa = PBXGroup;
 			children = (
+				C73BDECD305060D700F30CD9 /* AccessibilitySettingsStore.swift */,
 				06AAD5EB9BDF0130C026230D /* AcquireSettingsStore.swift */,
 				266E7FE6C137A6DF75537430 /* ArtworkStore.swift */,
 				665C19B51DBDE7B42B9AE459 /* DeepLinkRouter.swift */,
@@ -337,6 +347,7 @@
 				8E8F76213654049E7C096D18 /* Views */,
 				C7805D45304DC0DC00502B3D /* Waveform Icon.icon */,
 				C7805D48304DC5EF00502B3D /* AccentColor.xcassets */,
+				C73BDED33050620500F30CD9 /* OpenDyslexic-Regular.otf */,
 			);
 			path = Waveform;
 			sourceTree = "<group>";
@@ -406,6 +417,7 @@
 		BB046647FC33D286C67CFC99 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				C73BDED03050614200F30CD9 /* WCAGCompliance.swift */,
 				7A2295F89E61D691861D4B5F /* ShrinkSupport.swift */,
 				C1B4E9D519219241DF157DAF /* TimeFormatting.swift */,
 			);
@@ -555,6 +567,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C7805D49304DC5EF00502B3D /* AccentColor.xcassets in Resources */,
+				C73BDED53050620500F30CD9 /* OpenDyslexic-Regular.otf in Resources */,
 				308B21E7EC2C8FA30D4A2670 /* Info-iOS.plist in Resources */,
 				C7805D46304DC0DC00502B3D /* Waveform Icon.icon in Resources */,
 			);
@@ -573,6 +586,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C7805D4A304DC5EF00502B3D /* AccentColor.xcassets in Resources */,
+				C73BDED43050620500F30CD9 /* OpenDyslexic-Regular.otf in Resources */,
 				C739AD17304B2FB8000F9C94 /* Info-iOS.plist in Resources */,
 				C7805D47304DC0DC00502B3D /* Waveform Icon.icon in Resources */,
 			);
@@ -703,6 +717,7 @@
 				FFDBC37B1B7B59F8974CE515 /* ArtistDetailView.swift in Sources */,
 				DD9684797A30BD36FB649C7A /* ArtistsView.swift in Sources */,
 				8C058DD38462F3A1683C9F70 /* ArtworkStore.swift in Sources */,
+				C73BDECE305060D700F30CD9 /* AccessibilitySettingsStore.swift in Sources */,
 				795B5A9215E15449D58676AE /* ArtworkView.swift in Sources */,
 				0119C157198CE713F790EF51 /* DeepLinkRouter.swift in Sources */,
 				7D88169C38FA73B9B6AC7736 /* DownloadManager.swift in Sources */,
@@ -715,6 +730,7 @@
 				F82AB1C63C79CCBCD1E4ECC0 /* NowPlayingView.swift in Sources */,
 				54297B8AAC8230CD6EACC7EE /* PaletteStore.swift in Sources */,
 				510A2F33AEB428CB3FCA683C /* PlaybackVideoView.swift in Sources */,
+				C73BDED23050614200F30CD9 /* WCAGCompliance.swift in Sources */,
 				DDFB3BEBAF2F51B766F62C0D /* PlayerBar.swift in Sources */,
 				873475A4877208DCBE1F2C44 /* PlaylistControls.swift in Sources */,
 				8DCFDED0B1CACA5EF012428D /* PlaylistDetailView.swift in Sources */,
@@ -744,10 +760,12 @@
 				F66A90F63571D785F2999B22 /* AcquireSettingsStore.swift in Sources */,
 				51E04CBBCDAD0D4A6056F289 /* AlbumDetailView.swift in Sources */,
 				88CC244B3DFAE21321C25B0E /* AlbumsView.swift in Sources */,
+				C73BDECF305060D700F30CD9 /* AccessibilitySettingsStore.swift in Sources */,
 				27927561648978C5473FFA9B /* AppGroup.swift in Sources */,
 				4AEE260D2235F360AAB5D8EB /* ArtistDetailView.swift in Sources */,
 				D7BE48860C2C4C0339E014C8 /* ArtistsView.swift in Sources */,
 				C7805D3E304C0E8D00502B3D /* Helpers.swift in Sources */,
+				C73BDED13050614200F30CD9 /* WCAGCompliance.swift in Sources */,
 				46B69FB2662F659F88737C21 /* ArtworkStore.swift in Sources */,
 				7E5633D61BAF0603DE00C3F1 /* ArtworkView.swift in Sources */,
 				2F6A120B6A2EEDC714C0DF74 /* DeepLinkRouter.swift in Sources */,

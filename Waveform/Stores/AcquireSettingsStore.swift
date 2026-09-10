@@ -24,11 +24,21 @@ final class AcquireSettingsStore: ObservableObject {
     @Published var geniusToken: String {
         didSet { UserDefaults.standard.set(geniusToken, forKey: Keys.geniusToken) }
     }
+    /// §8: when on, a low-confidence audio/video match (one that never
+    /// cleared `Match.qualifies`'s score floor) is held back from the
+    /// permanent library rather than silently downloaded — see
+    /// `DownloadManager.download(_:kinds:capOverride:forceKinds:)`.
+    /// Off by default so existing behavior (always take the top-ranked
+    /// candidate) is unchanged until someone opts in.
+    @Published var conservativeMatching: Bool {
+        didSet { UserDefaults.standard.set(conservativeMatching, forKey: Keys.conservativeMatching) }
+    }
 
     private enum Keys {
         static let spotifyClientID = "waveform.spotifyClientID"
         static let spotifyClientSecret = "waveform.spotifyClientSecret"
         static let geniusToken = "waveform.geniusToken"
+        static let conservativeMatching = "waveform.conservativeMatching"
     }
 
     init() {
@@ -36,6 +46,7 @@ final class AcquireSettingsStore: ObservableObject {
         self.spotifyClientID = defaults.string(forKey: Keys.spotifyClientID) ?? ""
         self.spotifyClientSecret = defaults.string(forKey: Keys.spotifyClientSecret) ?? ""
         self.geniusToken = defaults.string(forKey: Keys.geniusToken) ?? ""
+        self.conservativeMatching = defaults.bool(forKey: Keys.conservativeMatching)
     }
 
     /// `nil` when either half of the credential pair is missing — matches

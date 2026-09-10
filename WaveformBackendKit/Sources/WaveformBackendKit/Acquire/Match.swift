@@ -48,6 +48,39 @@ public struct SourcePick: Sendable {
     public var forced: Bool
     public var ranked: [ScoredCandidate]
     public var strategy: String
+    /// `Match.qualifies(_:)` run against the winning candidate — `true`
+    /// for every `forced` pick (there's no ranking to check), otherwise
+    /// reflects whether the #1-ranked candidate actually cleared the
+    /// confidence floor. Previously nothing checked this at all:
+    /// `weightedSearch` returned the top-ranked candidate unconditionally,
+    /// so a thin/irrelevant result pool for an obscure artist could win
+    /// with a low score and nobody downstream would know. Callers should
+    /// treat `confident == false` as "this might be the wrong track" —
+    /// worth surfacing to the user rather than silently downloading.
+    public var confident: Bool
+    /// The literal text (or ISRC) searched for, when this pick came from
+    /// an actual search — `nil` for a direct/forced pick where no search
+    /// happened at all. Carried here (rather than recomputed at the call
+    /// site) so `Match.matchNote(for:)` can record it in the persisted
+    /// `MatchNote.query` field without callers needing to know how each
+    /// strategy built its query string.
+    public var query: String?
+
+    public init(
+        candidate: SearchCandidate,
+        forced: Bool,
+        ranked: [ScoredCandidate],
+        strategy: String,
+        confident: Bool,
+        query: String? = nil
+    ) {
+        self.candidate = candidate
+        self.forced = forced
+        self.ranked = ranked
+        self.strategy = strategy
+        self.confident = confident
+        self.query = query
+    }
 }
 
 /// Return shape of `Match.pickVideoSource` — mirrors `jobs.js`'s
@@ -207,20 +240,115 @@ public enum Match {
 
     /// Picks an audio source for `target`. A YouTube-origin `raw` (the
     /// item the user actually tapped in Search & Download) is trusted
-    /// directly, matching `pickSource`'s `provided_youtube_id` fast path;
-    /// a Spotify-origin `raw` always goes through the weighted search,
-    /// since Spotify itself has no playable audio to fall back to.
-    /// `youtubeSource` defaults to `Search.defaultYouTubeSource` — see
-    /// that property's doc comment for the "use only YTM" switch.
+    /// directly, matching `pickSource`'s `provided_youtube_id` fast path.
+    /// A Spotify-origin `raw` tries an ISRC search first when it has one
+    /// (`isrcSearch` below) — a far stronger signal than free-text
+    /// title/artist matching — and only falls back to the weighted
+    /// text search when that doesn't land a confident pick (no ISRC, no
+    /// results, or a duration mismatch). `youtubeSource` defaults to
+    /// `Search.defaultYouTubeSource` — see that property's doc comment
+    /// for the "use only YTM" switch.
     public static func pickAudioSource(
         for raw: SearchCandidate,
         target: MatchTarget,
         youtubeSource: YouTubeSearchSource = Search.defaultYouTubeSource
     ) async -> SourcePick {
         if raw.origin == .youtube {
-            return SourcePick(candidate: raw, forced: true, ranked: [], strategy: "provided_youtube_id")
+            return SourcePick(candidate: raw, forced: true, ranked: [], strategy: "provided_youtube_id", confident: true)
+        }
+        if let isrc = raw.isrc, !isrc.isEmpty,
+           let pick = await isrcSearch(isrc: isrc, raw: raw, target: target, youtubeSource: youtubeSource) {
+            return pick
         }
         return await weightedSearch(for: raw, target: target, youtubeSource: youtubeSource)
+    }
+
+    /// Tries to resolve `target`'s audio by searching YouTube for its
+    /// Spotify ISRC directly, rather than free-text title/artist —
+    /// `raw.isrc` is only ever populated for a Spotify-origin candidate
+    /// (`SpotifyClient.mapTrack`), so this is purely an audio-matching
+    /// upgrade for Spotify-sourced searches, matches, and library items.
+    /// An ISRC uniquely identifies the *recording*, and searching for it
+    /// verbatim frequently surfaces the exact Content-ID-matched
+    /// "<Artist> - Topic" upload for that recording — a candidate pool
+    /// that's already scoped to (in principle) just this one song,
+    /// unlike a title search's pool of covers/remixes/fan edits that
+    /// merely share a name. Returns `nil` (meaning: fall back to
+    /// `weightedSearch`) whenever that doesn't pan out — no results, or
+    /// nothing in the results actually looks like the right recording.
+    private static func isrcSearch(
+        isrc: String,
+        raw: SearchCandidate,
+        target: MatchTarget,
+        youtubeSource: YouTubeSearchSource
+    ) async -> SourcePick? {
+        guard let candidates = try? await YouTubeSearch.search(isrc, source: youtubeSource), !candidates.isEmpty else {
+            return nil
+        }
+
+        let ranked = rankCandidates(target: target, candidates: candidates)
+        guard let winner = ranked.first, isrcQualifies(winner) else {
+            WFLog.match.info("ISRC search for \"\(isrc, privacy: .public)\" returned no confident match for \"\(target.author, privacy: .public) - \(target.title, privacy: .public)\" — falling back to weighted text search.")
+            return nil
+        }
+
+        let winnerCandidate = mergedCandidate(raw: raw, winner: winner.candidate)
+
+        WFLog.match.debug("ISRC search for \"\(isrc, privacy: .public)\" picked \"\(winner.candidate.rawTitle, privacy: .public)\" (score \(winner.total, format: .fixed(precision: 2))) for \"\(target.author, privacy: .public) - \(target.title, privacy: .public)\".")
+
+        return SourcePick(candidate: winnerCandidate, forced: false, ranked: ranked, strategy: "isrc_search", confident: true, query: isrc)
+    }
+
+    /// A looser floor than `Match.qualifies`: an ISRC search's result
+    /// pool is already scoped to one recording, so a weak title/keyword
+    /// score here usually just means an oddly-formatted upload title,
+    /// not the wrong song — unlike a free-text search, where that's the
+    /// main signal against covers/fan edits. Duration is the one thing
+    /// that still reliably catches a genuine mismatch (YouTube returning
+    /// something unrelated for the ISRC text), so this checks that alone.
+    private static func isrcQualifies(_ scored: ScoredCandidate) -> Bool {
+        (scored.parts.duration ?? 0) >= 0.75
+    }
+
+    /// Combines a matched YouTube `winner` with the original `raw`
+    /// candidate that was searched for — the single place both
+    /// `isrcSearch` and `weightedSearch` build the `SearchCandidate` a
+    /// pick actually returns, so the merge logic (and any bug in it)
+    /// only exists once.
+    ///
+    /// The rule: anything that describes *the track itself* — title,
+    /// author, ISRC, album name/metadata, the full artist list — comes
+    /// from `raw` whenever `raw` actually has it (a Spotify-origin `raw`
+    /// always does; a YouTube-origin `raw` never does, so `winner`'s
+    /// value — usually just as empty — is the harmless fallback).
+    /// Anything that describes *which YouTube upload this is* — id, url,
+    /// channel, view count, the matched duration — comes from `winner`,
+    /// since that's the whole point of having searched in the first
+    /// place. Getting this backwards (preferring `winner`'s essentially-
+    /// always-`nil` `isrc`/`albumName`/`artists`/`albumMeta` over `raw`'s
+    /// real Spotify data) was a real bug here: every Spotify-matched
+    /// download silently lost its ISRC and album metadata the moment it
+    /// resolved to a YouTube source, even though `raw` had it the whole
+    /// time.
+    private static func mergedCandidate(raw: SearchCandidate, winner: SearchCandidate) -> SearchCandidate {
+        SearchCandidate(
+            id: winner.id,
+            origin: winner.origin,
+            title: raw.title,
+            author: raw.author,
+            rawTitle: raw.rawTitle,
+            channel: winner.channel ?? raw.rawTitle,
+            url: winner.url,
+            youtubeID: winner.youtubeID ?? raw.youtubeID,
+            spotifyID: winner.spotifyID ?? raw.spotifyID,
+            isrc: raw.isrc ?? winner.isrc,
+            durationMS: winner.durationMS,
+            viewCount: winner.viewCount,
+            thumbnailURLString: winner.thumbnailURLString,
+            albumName: raw.albumName ?? winner.albumName,
+            artists: raw.artists.isEmpty ? winner.artists : raw.artists,
+            albumMeta: raw.albumMeta.isEmpty ? winner.albumMeta : raw.albumMeta
+        )
     }
 
     /// Prefers Genius (when `genius` is non-nil) over the weighted
@@ -260,7 +388,7 @@ public enum Match {
         }
 
         if let top = lookup.filtered.first {
-            let candidate = SearchCandidate(
+            let geniusCandidate = SearchCandidate(
                 id: "youtube:\(top.videoID)",
                 origin: .youtube,
                 title: top.title ?? target.title,
@@ -270,8 +398,13 @@ public enum Match {
                 url: "https://www.youtube.com/watch?v=\(top.videoID)",
                 youtubeID: top.videoID
             )
+            // Merged the same way `weightedSearch`/`isrcSearch` merge
+            // their winner — a Genius-identified video is still a match
+            // *for* `raw`, so it should carry `raw`'s ISRC/album/artist
+            // data forward too, not just its own bare id/title/channel.
+            let candidate = mergedCandidate(raw: raw, winner: geniusCandidate)
             return VideoPick(
-                sourcePick: SourcePick(candidate: candidate, forced: true, ranked: [], strategy: "genius"),
+                sourcePick: SourcePick(candidate: candidate, forced: true, ranked: [], strategy: "genius", confident: true, query: "\(target.author) \(target.title)"),
                 skip: false
             )
         }
@@ -305,28 +438,88 @@ public enum Match {
             // No candidates at all — fall back to whatever URL `raw`
             // already has, same as `pickSource`'s `fallback_url` strategy.
             WFLog.match.warning("Weighted search for \"\(query, privacy: .public)\" returned no candidates — falling back to raw URL.")
-            return SourcePick(candidate: raw, forced: false, ranked: [], strategy: "fallback_url")
+            return SourcePick(candidate: raw, forced: false, ranked: [], strategy: "fallback_url", confident: false, query: query)
         }
         
-        let winnerCandidate = SearchCandidate(
-            id: winner.candidate.id,
-            origin: winner.candidate.origin,
-            title: raw.title,
-            author: raw.author,
-            rawTitle: raw.rawTitle,
-            channel: winner.candidate.channel ?? raw.rawTitle,
-            url: winner.candidate.url,
-            youtubeID: winner.candidate.youtubeID ?? raw.youtubeID,
-            spotifyID: winner.candidate.spotifyID ?? raw.spotifyID,
-            isrc: winner.candidate.isrc,
-            durationMS: winner.candidate.durationMS,
-            viewCount: winner.candidate.viewCount,
-            thumbnailURLString: winner.candidate.thumbnailURLString,
-            albumName: winner.candidate.albumName
-        )
+        let winnerCandidate = mergedCandidate(raw: raw, winner: winner.candidate)
         
         WFLog.match.debug("Weighted search for \"\(query, privacy: .public)\" picked \"\(winner.candidate.rawTitle, privacy: .public)\" (score \(winner.total, format: .fixed(precision: 2))) from \(ranked.count) candidate(s).")
-        return SourcePick(candidate: winnerCandidate, forced: false, ranked: ranked, strategy: "weighted_search")
+
+        // Full ranked-candidate breakdown — this is the "how did it
+        // search, what were the candidates" diagnostic. Logged
+        // unconditionally at .debug rather than gated behind a separate
+        // verbose flag: it's exactly the information needed to explain a
+        // wrong pick after the fact, and os.Logger's .debug level is
+        // already how the rest of this pipeline's verbose detail flows
+        // (filter Console.app/Xcode's console by subsystem if it's noisy
+        // for everyday use).
+        for (index, scored) in ranked.prefix(8).enumerated() {
+            let p = scored.parts
+            func fmt(_ value: Double?) -> String { value.map { String(format: "%.2f", $0) } ?? "n/a" }
+            WFLog.match.debug("""
+                [\(index)] "\(scored.candidate.rawTitle, privacy: .public)" — \
+                channel: \(scored.candidate.channel ?? "?", privacy: .public), \
+                total: \(scored.total, format: .fixed(precision: 3)), \
+                title: \(fmt(p.title), privacy: .public), \
+                artist: \(fmt(p.artist), privacy: .public), \
+                duration: \(fmt(p.duration), privacy: .public), \
+                keywords: \(fmt(p.keywords), privacy: .public), \
+                channelScore: \(fmt(p.channel), privacy: .public), \
+                views: \(fmt(p.views), privacy: .public), \
+                waveform: \(fmt(p.waveform), privacy: .public)
+                """)
+        }
+
+        let confident = Match.qualifies(winner)
+        if !confident {
+            WFLog.match.warning("Weighted search winner for \"\(query, privacy: .public)\" scored below the confidence floor (\(winner.total, format: .fixed(precision: 2)) < \(Match.minVideoMatchScore, format: .fixed(precision: 2)), or keyword score \(winner.parts.keywords ?? 0, format: .fixed(precision: 2)) < \(Match.minVideoKeywordScore, format: .fixed(precision: 2))) — this pick may be the wrong track. See the ranked breakdown above.")
+        }
+
+        return SourcePick(candidate: winnerCandidate, forced: false, ranked: ranked, strategy: "weighted_search", confident: confident, query: query)
+    }
+
+    // MARK: - Persisted match diagnostics
+
+    /// Turns a completed `SourcePick` into the `MatchNote` shape
+    /// `MediaInfoDocument.match.audio`/`.video` actually stores — the one
+    /// place `Match`'s internal `ScoredCandidate`/`SourcePick` types get
+    /// converted into the `Codable` record written to `library.json`.
+    /// Previously nothing ever called this (there was no "this" to call
+    /// at all): every downloaded item's `match` block stayed empty, and
+    /// `ItemDetailView`'s "why was this matched this way" disclosure had
+    /// nothing to show.
+    public static func matchNote(for pick: SourcePick) -> MatchNote {
+        guard let winner = pick.ranked.first else {
+            // "provided_youtube_id"/"fallback_url"/a bare Genius hit —
+            // only `strategy` (and `query`, when there was one) means
+            // anything; there's no ranked candidate pool to report.
+            return MatchNote(strategy: pick.strategy, query: pick.query)
+        }
+        let considered = pick.ranked.prefix(8).map { scored in
+            MatchCandidate(
+                title: scored.candidate.rawTitle,
+                url: scored.candidate.url,
+                total: scored.total,
+                parts: scored.parts
+            )
+        }
+        let score = MatchScore(total: winner.total, parts: winner.parts, weights: weightsAsScoreParts)
+        return MatchNote(strategy: pick.strategy, query: pick.query, score: score, considered: Array(considered))
+    }
+
+    /// `weights` (a `MatchWeights`) repackaged as a `MatchScoreParts` —
+    /// same six-ish numbers, just the shape `MatchNote.score.weights`
+    /// wants so `parts`/`weights` can share one type.
+    private static var weightsAsScoreParts: MatchScoreParts {
+        MatchScoreParts(
+            title: weights.title,
+            artist: weights.artist,
+            duration: weights.duration,
+            keywords: weights.keywords,
+            channel: weights.channel,
+            waveform: weights.waveform,
+            views: weights.views
+        )
     }
 
     // MARK: - Private scoring helpers

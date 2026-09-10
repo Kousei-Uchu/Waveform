@@ -30,7 +30,8 @@ final class PaletteStore: ObservableObject {
     @Published var currentItemID: String?
 
     var currentTint: Color? {
-        currentItemID.flatMap { cache[$0] }
+        guard !AccessibilitySettingsStore.shared.disableAccentColorSwapping else { return nil }
+        return currentItemID.flatMap { cache[$0] }
     }
 
     /// The paired "contrast" color for the current item — drawn from the
@@ -39,7 +40,8 @@ final class PaletteStore: ObservableObject {
     /// interesting. Falls back to a synthesized complement only if nothing
     /// else in the image's swatches qualifies.
     var currentSecondaryTint: Color? {
-        currentItemID.flatMap { secondaryCache[$0] }
+        guard !AccessibilitySettingsStore.shared.disableAccentColorSwapping else { return nil }
+        return currentItemID.flatMap { secondaryCache[$0] }
     }
 
     func color(for itemID: String) -> Color? {
@@ -210,7 +212,8 @@ final class PaletteStore: ObservableObject {
         let fallbackColor = dominant.flatMap { Color(paletteHex: $0.hex) } ?? .black
 
         guard let primary = candidates.max(by: { interestScore(for: $0) < interestScore(for: $1) }) else {
-            return (fallbackColor, fallbackColor.pleasantComplement())
+            let corrected = fallbackColor.wcagCorrected()
+            return (corrected, corrected.pleasantComplement())
         }
 
         let secondaryPool = candidates.filter { $0.kind != primary.kind }
@@ -218,7 +221,15 @@ final class PaletteStore: ObservableObject {
             contrastScore(candidate: $0, against: primary) < contrastScore(candidate: $1, against: primary)
         })
 
-        return (primary.color, secondary?.color ?? primary.color.pleasantComplement())
+        // WCAG correction happens here, once, before caching — every call
+        // site downstream (`BackgroundView`'s gradient, glass tint, text
+        // colors) reads `currentTint`/`currentSecondaryTint` assuming
+        // they're already safe to put white or black text over, rather
+        // than each needing to re-check and correct independently.
+        let correctedPrimary = primary.color.wcagCorrected()
+        let correctedSecondary = (secondary?.color ?? primary.color.pleasantComplement()).wcagCorrected()
+
+        return (correctedPrimary, correctedSecondary)
     }
 
     /// Weighted mostly toward saturation (that's what makes a color read

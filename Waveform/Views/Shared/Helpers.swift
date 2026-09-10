@@ -14,18 +14,28 @@ private struct LiquidGlass<Content: View, S: Shape>: View {
     // Owned by an actual View now — this is what reliably re-renders when
     // currentTint changes.
     @ObservedObject private var palette = PaletteStore.shared
+    @ObservedObject private var accessibility = AccessibilitySettingsStore.shared
 
     var body: some View {
         #if compiler(>=6.0)
-        if #available(iOS 26.0, macOS 26.0, visionOS 26.0, tvOS 26.0, watchOS 26.0, *) {
+        if !accessibility.disableLiquidGlass, #available(iOS 26.0, macOS 26.0, visionOS 26.0, tvOS 26.0, watchOS 26.0, *) {
             content().glassEffect(resolvedGlass, in: shape)
                 .animation(.easeInOut(duration: 1), value: palette.currentTint)
         } else {
-            content().background(Color.clear)
+            fallbackContent
         }
         #else
-        content().background(Color.clear)
+        fallbackContent
         #endif
+    }
+
+    /// Used both pre-iOS-26 (no Liquid Glass API at all) and whenever
+    /// `disableLiquidGlass` is on — a plain material keeps *some* visual
+    /// separation from whatever's behind it, rather than the flat
+    /// `Color.clear` this used to fall back to unconditionally, which
+    /// would leave e.g. a Settings section with nothing behind it at all.
+    private var fallbackContent: some View {
+        content().background(tinted ? AnyShapeStyle(.thinMaterial) : AnyShapeStyle(Color.clear))
     }
 
     @available(iOS 26.0, macOS 26.0, visionOS 26.0, tvOS 26.0, watchOS 26.0, *)
@@ -167,5 +177,64 @@ private extension Color {
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
         native.getRed(&r, green: &g, blue: &b, alpha: &a)
         return (Double(r) * 255, Double(g) * 255, Double(b) * 255, Double(a))
+    }
+}
+
+/// `Font.appPreferred(_:)`/the `Font.appBody` etc. convenience statics are
+/// what `useOpenDyslexicFont` actually affects — a raw `.font(.title2)`
+/// elsewhere in the app is untouched by the toggle, since SwiftUI has no
+/// mechanism to globally rewrite already-specified font literals at
+/// runtime. Retrofitting existing screens means swapping their `.font(...)`
+/// calls to the matching `Font.app...` helper below; this file only
+/// provides the mechanism; NowPlayingView's title has been updated as a
+/// worked example (see that file).
+///
+/// **Requires the actual OpenDyslexic font files** (e.g.
+/// `OpenDyslexic-Regular.otf`, `-Bold.otf`) to be added to the target and
+/// listed under Info.plist's `Fonts provided by application`
+/// (`UIAppFonts`) / macOS's `ATSApplicationFontsPath` — this file can't
+/// bundle a font it doesn't have; `Font.custom` below will silently fall
+/// back to the system font if "OpenDyslexic" isn't a registered PostScript
+/// name at runtime, so nothing crashes if you haven't added the files yet,
+/// it just won't visually change anything until you do.
+extension Font {
+    /// Maps a `TextStyle` to either the system font or OpenDyslexic at an
+    /// equivalent size, depending on `AccessibilitySettingsStore.shared`.
+    /// Sizes are approximate matches to Apple's default text style point
+    /// sizes at the `.large` Dynamic Type setting — if you need exact
+    /// Dynamic Type scaling to track the user's actual accessibility
+    /// text-size setting, use `UIFontMetrics(forTextStyle:).scaledFont`
+    /// instead of a fixed point size here.
+    static func appPreferred(_ style: TextStyle, weight: Font.Weight = .regular) -> Font {
+        guard AccessibilitySettingsStore.shared.useOpenDyslexicFont else {
+            return .system(style, design: .default).weight(weight)
+        }
+        let postscriptName = weight == .bold || weight == .heavy || weight == .black
+            ? "OpenDyslexic-Bold"
+            : "OpenDyslexic-Regular"
+        return .custom(postscriptName, size: pointSize(for: style))
+    }
+
+    static var appBody: Font { appPreferred(.body) }
+    static var appHeadline: Font { appPreferred(.headline, weight: .semibold) }
+    static var appTitle2: Font { appPreferred(.title2, weight: .semibold) }
+    static var appCaption: Font { appPreferred(.caption) }
+    static var appCaption2: Font { appPreferred(.caption2) }
+
+    private static func pointSize(for style: TextStyle) -> CGFloat {
+        switch style {
+        case .largeTitle: 34
+        case .title: 28
+        case .title2: 22
+        case .title3: 20
+        case .headline: 17
+        case .body: 17
+        case .callout: 16
+        case .subheadline: 15
+        case .footnote: 13
+        case .caption: 12
+        case .caption2: 11
+        @unknown default: 17
+        }
     }
 }

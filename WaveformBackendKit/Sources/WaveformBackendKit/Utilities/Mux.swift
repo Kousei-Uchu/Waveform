@@ -9,6 +9,7 @@
 import Foundation
 import AVFoundation
 import CoreMedia
+import os
 
 public enum MuxError: Error, LocalizedError, Sendable {
     case missingSourceFile
@@ -57,12 +58,22 @@ public enum Mux {
 
     /// Composes `videoURL`'s video track and `audioURL`'s audio track
     /// into one `.mp4` file via a passthrough export (no re-encode).
+    ///
+    /// This is pure local I/O — no network involved — so it shouldn't be
+    /// a meaningful contributor to overall "time until playable" the way
+    /// `Fetch`/`SegmentedFetch`'s network legs are. The debug logging
+    /// below exists specifically to *confirm* that rather than assume it:
+    /// previously this method logged nothing, so its actual duration was
+    /// invisible next to `Fetch`'s "Download finished in Xs" logs.
     public static func mux(videoURL: URL, audioURL: URL) async throws -> URL {
         guard FileManager.default.fileExists(atPath: videoURL.path),
               FileManager.default.fileExists(atPath: audioURL.path)
         else {
             throw MuxError.missingSourceFile
         }
+
+        let start = Date()
+        WFLog.fetch.debug("Starting mux (passthrough, no re-encode).")
 
         let videoAsset = AVURLAsset(url: videoURL)
         let audioAsset = AVURLAsset(url: audioURL)
@@ -122,13 +133,19 @@ public enum Mux {
             }
         }
 
+        let elapsed = Date().timeIntervalSince(start)
+
         switch exportSession.status {
         case .completed:
+            WFLog.fetch.debug("Mux finished in \(elapsed, format: .fixed(precision: 1))s.")
             return destination
         case .cancelled:
+            WFLog.fetch.debug("Mux cancelled after \(elapsed, format: .fixed(precision: 1))s.")
             throw MuxError.exportCancelled
         default:
-            throw MuxError.exportFailed(exportSession.error?.localizedDescription ?? "Unknown export failure.")
+            let message = exportSession.error?.localizedDescription ?? "Unknown export failure."
+            WFLog.fetch.error("Mux failed after \(elapsed, format: .fixed(precision: 1))s: \(message, privacy: .public)")
+            throw MuxError.exportFailed(message)
         }
     }
 

@@ -55,59 +55,60 @@ struct SearchDownloadView: View {
     private func resultsList(_ result: SearchResult) -> some View {
         List {
             ForEach(result.groups) { group in
-                if (group.label.contains("YouTube")) {} else {
-                    Section(group.label) {
-                        if let error = group.error {
-                            Text(error)
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
-                        if group.label == "Playlist" {
-                            Button {
-                                Task {
-                                    for item in result.items {
-                                        await download(item)
-                                    }
+                Section(group.label) {
+                    if let error = group.error {
+                        Text(error)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                    if group.label == "Playlist" {
+                        Button {
+                            Task {
+                                for item in result.items {
+                                    await download(item)
                                 }
-                            } label: {
-                                Label("Download All", systemImage: "square.and.arrow.down.on.square.fill")
-                                    .font(.body.weight(.semibold)) // Helps visibility against lensed backgrounds
-                                    .foregroundStyle(.primary)
-                                    .padding(.vertical, 14)       // Gives breathing room inside the 3D bubble
-                                    .frame(maxWidth: .infinity)
-                                    // 1. Apply the glass effect directly to the content layer for native depth mapping
-                                    .liquidGlassIfAvailable(in: .capsule, isInteractive: true)
                             }
-                            .buttonStyle(.plain) // Prevents standard list button highlights from interfering
-                            // 2. Add padding to separate the capsule from row edges, triggering edge aberration
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 6)
-                            // 3. Keep the underlying system row perfectly empty
+                        } label: {
+                            Label("Download All", systemImage: "square.and.arrow.down.on.square.fill")
+                                .font(.body.weight(.semibold)) // Helps visibility against lensed backgrounds
+                                .foregroundStyle(.primary)
+                                .padding(.vertical, 14)       // Gives breathing room inside the 3D bubble
+                                .frame(maxWidth: .infinity)
+                                // 1. Apply the glass effect directly to the content layer for native depth mapping
+                                .liquidGlassIfAvailable(in: .capsule, isInteractive: true)
+                        }
+                        .buttonStyle(.plain) // Prevents standard list button highlights from interfering
+                        // 2. Add padding to separate the capsule from row edges, triggering edge aberration
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 6)
+                        // 3. Keep the underlying system row perfectly empty
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets())
+                    }
+                    Group {
+                        ForEach(group.items) { candidate in
+                            SearchResultRow(
+                                candidate: candidate,
+                                ref: resolvedRefs[candidate.id] ?? candidate.remoteRef(),
+                                isResolving: resolving.contains(candidate.id),
+                                resolveError: resolveErrors[candidate.id],
+                                downloadState: (resolvedRefs[candidate.id] ?? candidate.remoteRef())
+                                    .map { downloads.state(for: $0) } ?? .idle,
+                                confidenceIssue: (resolvedRefs[candidate.id] ?? candidate.remoteRef())
+                                    .flatMap { downloads.confidenceIssues[$0.id] },
+                                onPlay: { play(candidate) },
+                                onWatch: { playVideo(candidate) },
+                                onDownload: { Task { await download(candidate) } },
+                                onDownloadAnyway: { Task { await download(candidate, forceAll: true) } }
+                            )
                             .listRowBackground(Color.clear)
                             .listRowInsets(EdgeInsets())
                         }
-                        Group {
-                            ForEach(group.items) { candidate in
-                                SearchResultRow(
-                                    candidate: candidate,
-                                    ref: resolvedRefs[candidate.id] ?? candidate.remoteRef(),
-                                    isResolving: resolving.contains(candidate.id),
-                                    resolveError: resolveErrors[candidate.id],
-                                    downloadState: (resolvedRefs[candidate.id] ?? candidate.remoteRef())
-                                        .map { downloads.state(for: $0) } ?? .idle,
-                                    onPlay: { play(candidate) },
-                                    onWatch: { playVideo(candidate) },
-                                    onDownload: { Task { await download(candidate) } }
-                                )
-                                .listRowBackground(Color.clear)
-                                .listRowInsets(EdgeInsets())
-                            }
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 16)
-                        .liquidGlassIfAvailable(in: .rect(cornerRadius: 16), isInteractive: true)
-                        .listRowBackground(Color.clear)
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 16)
+                    .liquidGlassIfAvailable(in: .rect(cornerRadius: 16), isInteractive: true)
+                    .listRowBackground(Color.clear)
                 }
             }
             .listRowBackground(Color.clear)
@@ -194,7 +195,9 @@ struct SearchDownloadView: View {
         // A direct YouTube pick already carries everything needed
         // (`raw == matched`, so `ArtworkSelection` just hands back the
         // candidate's own thumbnail — this call is here for consistency,
-        // not because it changes anything in this branch).
+        // not because it changes anything in this branch). No search
+        // happened, so it's trusted outright (`matchConfident` defaults
+        // to `true`).
         if let ref = candidate.remoteRef(artworkURLOverride: ArtworkSelection.preferredArtworkURL(raw: candidate)) {
             return ref
         }
@@ -212,7 +215,11 @@ struct SearchDownloadView: View {
         // thumbnail the matched YouTube video happens to have — see
         // `ArtworkSelection`'s doc comment.
         let artworkURL = ArtworkSelection.preferredArtworkURL(raw: candidate, matched: pick.candidate)
-        guard let ref = pick.candidate.remoteRef(artworkURLOverride: artworkURL) else { return nil }
+        guard let ref = pick.candidate.remoteRef(
+            artworkURLOverride: artworkURL,
+            matchConfident: pick.confident,
+            matchNote: Match.matchNote(for: pick)
+        ) else { return nil }
         resolvedRefs[candidate.id] = ref
         return ref
     }
@@ -244,7 +251,12 @@ struct SearchDownloadView: View {
         let videoPick = await Match.pickVideoSource(for: candidate, target: target, genius: acquireSettings.geniusClient)
         guard !videoPick.skip, let pick = videoPick.sourcePick else { return nil }
         let artworkURL = ArtworkSelection.preferredArtworkURL(raw: candidate, matched: pick.candidate)
-        guard let ref = pick.candidate.remoteRef(availableKinds: [.video], artworkURLOverride: artworkURL) else {
+        guard let ref = pick.candidate.remoteRef(
+            availableKinds: [.video],
+            artworkURLOverride: artworkURL,
+            matchConfident: pick.confident,
+            matchNote: Match.matchNote(for: pick)
+        ) else {
             return nil
         }
         resolvedVideoRefs[candidate.id] = ref
@@ -287,7 +299,7 @@ struct SearchDownloadView: View {
         }
     }
 
-    private func download(_ candidate: SearchCandidate) async {
+    private func download(_ candidate: SearchCandidate, forceAll: Bool = false) async {
         resolving.insert(candidate.id)
         resolveErrors[candidate.id] = nil
         defer { resolving.remove(candidate.id) }
@@ -300,7 +312,8 @@ struct SearchDownloadView: View {
         await downloads.download(
             ref,
             kinds: ref.availableKinds,
-            capOverride: playbackSettings.downloadResolutionCap
+            capOverride: playbackSettings.downloadResolutionCap,
+            forceKinds: forceAll ? ref.availableKinds : []
         )
     }
 }
@@ -316,11 +329,22 @@ private struct SearchResultRow: View {
     let isResolving: Bool
     let resolveError: String?
     let downloadState: DownloadManager.State
+    var confidenceIssue: DownloadManager.ConfidenceIssue?
     let onPlay: () -> Void
     let onWatch: () -> Void
     let onDownload: () -> Void
+    var onDownloadAnyway: (() -> Void)? = nil
 
     var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            row
+            if let confidenceIssue {
+                confidenceWarning(confidenceIssue)
+            }
+        }
+    }
+
+    private var row: some View {
         HStack(spacing: 12) {
             thumbnail
                 .frame(width: 44, height: 44)
@@ -368,6 +392,24 @@ private struct SearchResultRow: View {
             }
         }
         .onTapGesture { onPlay() }
+    }
+
+    @ViewBuilder
+    private func confidenceWarning(_ issue: DownloadManager.ConfidenceIssue) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle")
+                .foregroundStyle(.orange)
+            Text(issue.message)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Spacer()
+            if let onDownloadAnyway {
+                Button("Download Anyway", action: onDownloadAnyway)
+                    .font(.caption2.weight(.semibold))
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.orange)
+            }
+        }
     }
 
     @ViewBuilder

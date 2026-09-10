@@ -31,12 +31,12 @@ struct NowPlayingView: View {
 
                     VStack(spacing: 6) {
                         Text(entry.playable.title)
-                            .font(.title2.weight(.semibold))
+                            .font(.appTitle2)
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
                             .foregroundStyle(secondaryAccentColor(for: entry))
                         Text(entry.playable.author)
-                            .font(.headline)
+                            .font(.appHeadline)
                             .foregroundStyle(.secondary)
                     }
 
@@ -170,6 +170,34 @@ struct NowPlayingView: View {
 
     @ViewBuilder
     private func downloadRow(for ref: RemoteRef) -> some View {
+        VStack(alignment: .trailing, spacing: 6) {
+            downloadStateView(for: ref)
+            if let issue = downloads.confidenceIssues[ref.id] {
+                HStack(spacing: 6) {
+                    Text(issue.message)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.trailing)
+                    Button("Download Anyway") {
+                        Task {
+                            await downloads.download(
+                                ref,
+                                kinds: ref.availableKinds,
+                                capOverride: playbackSettings.downloadResolutionCap,
+                                forceKinds: ref.availableKinds
+                            )
+                        }
+                    }
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.orange)
+                }
+                .frame(maxWidth: 200)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func downloadStateView(for ref: RemoteRef) -> some View {
         switch downloads.state(for: ref) {
         case .idle:
             Button {
@@ -219,7 +247,7 @@ struct NowPlayingView: View {
     /// resolved a secondary (e.g. still loading, or every other swatch got
     /// filtered out for this image).
     private func secondaryAccentColor(for entry: QueueEntry) -> Color {
-        palette.currentSecondaryTint ?? .stableAccent
+        palette.currentSecondaryTint ?? .stableSecondary
     }
 
     private var backgroundGradient: some View {

@@ -14,6 +14,7 @@ struct SettingsView: View {
     @EnvironmentObject private var vaultStore: VaultStore
     @EnvironmentObject private var settings: PlaybackSettingsStore
     @EnvironmentObject private var acquireSettings: AcquireSettingsStore
+    @EnvironmentObject private var accessibility: AccessibilitySettingsStore
 
     #if os(macOS)
     @State private var showingFolderImporter = false
@@ -43,6 +44,7 @@ struct SettingsView: View {
                 downloadsSection
                 shrinkSection
                 playbackSection
+                accessibilitySection
             }
             .scrollContentBackground(.hidden)
             .navigationTitle("Settings")
@@ -118,6 +120,7 @@ struct SettingsView: View {
             } label: {
                 Text("Genius Token")
             }
+            Toggle("Conservative Matching", isOn: $acquireSettings.conservativeMatching)
         } header: {
             Text("Search & Download")
         } footer: {
@@ -131,6 +134,7 @@ struct SettingsView: View {
         if !acquireSettings.isSpotifyConfigured {
             lines.append("Spotify search is currently off; YouTube search still works without it.")
         }
+        lines.append("Conservative Matching holds back a download whose audio or video match scored too low to trust, asking first instead of guessing — if only one of audio/video is confident, the other is skipped until you confirm.")
         return lines.joined(separator: " ")
     }
 
@@ -189,6 +193,22 @@ struct SettingsView: View {
             Text("Playback")
         } footer: {
             Text("Normalize Volume turns down tracks that are louder than average; it can't boost quiet tracks. Crossfade overlaps the end of one track with the start of the next — audio only.")
+        }
+        .listRowBackground(sectionGlassBackground)
+    }
+
+    // MARK: - Accessibility
+
+    @ViewBuilder
+    private var accessibilitySection: some View {
+        Section {
+            Toggle("Use OpenDyslexic Font", isOn: $accessibility.useOpenDyslexicFont)
+            Toggle("Disable Liquid Glass", isOn: $accessibility.disableLiquidGlass)
+            Toggle("Disable Accent Color Swapping", isOn: $accessibility.disableAccentColorSwapping)
+        } header: {
+            Text("Accessibility")
+        } footer: {
+            Text("OpenDyslexic requires the font to be added to the app first — this only sets the preference. Disabling accent color swapping keeps tint colors fixed to the app's default theme instead of shifting per track. Disabling Liquid Glass replaces frosted surfaces with a plain material.")
         }
         .listRowBackground(sectionGlassBackground)
     }

@@ -9,11 +9,37 @@ struct ArtistDetailView: View {
 
     /// Tracks grouped by album, in album-title order, so the artist page
     /// reads like a discography rather than a flat song dump.
-    private var albums: [(key: String, items: [MediaItem])] {
+    ///
+    /// Every track *without* real album info (`albumName == nil` —
+    /// non-Spotify sources, or a Spotify response that somehow came back
+    /// without one) shares `albumGroupKey`'s per-track fallback key
+    /// (`author::title`), which is unique per track by construction —
+    /// grouping straight off that key would give every such track its
+    /// own one-song section, all labeled "Singles" identically (the
+    /// visual "two different Singles sections" bug this fixes). Those are
+    /// pulled out and merged into one real "Singles" section instead;
+    /// every track that *does* have a real album name keeps its own
+    /// distinct, correctly-labeled section as before.
+    private var albums: [(key: String, title: String, items: [MediaItem])] {
         let grouped = Dictionary(grouping: artist.items, by: \.albumGroupKey)
-        return grouped
-            .map { (key: $0.key, items: $0.value.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }) }
-            .sorted { ($0.items.first?.albumName ?? "") < ($1.items.first?.albumName ?? "") }
+        var named: [(key: String, title: String, items: [MediaItem])] = []
+        var singles: [MediaItem] = []
+
+        for (key, items) in grouped {
+            let sorted = items.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+            if let albumName = sorted.first?.albumName, !albumName.isEmpty {
+                named.append((key: key, title: albumName, items: sorted))
+            } else {
+                singles.append(contentsOf: sorted)
+            }
+        }
+
+        named.sort { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+        if !singles.isEmpty {
+            let sortedSingles = singles.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+            named.append((key: "singles", title: "Singles", items: sortedSingles))
+        }
+        return named
     }
 
     var body: some View {
@@ -55,7 +81,7 @@ struct ArtistDetailView: View {
             .listRowBackground(Color.clear)
 
             ForEach(albums, id: \.key) { group in
-                Section(group.items.first?.albumName ?? "Singles") {
+                Section(group.title) {
                     ForEach(group.items) { item in
                         SongRow(item: item, showArtist: false)
                     }

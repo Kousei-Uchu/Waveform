@@ -21,6 +21,39 @@ public enum SearchOrigin: String, Sendable {
     case spotify
 }
 
+/// One contributing artist on a Spotify track — `id` is Spotify's own
+/// artist id (present for every Spotify-sourced artist; `nil` for a
+/// name-only artist, e.g. one recovered from a non-Spotify source that
+/// has no stable id to offer). Kept as its own small type rather than
+/// two parallel `[String]` arrays (names/ids) so a track's artists stay
+/// paired correctly as one list.
+public struct ArtistRef: Sendable, Hashable, Codable {
+    public var id: String?
+    public var name: String
+
+    public init(id: String? = nil, name: String) {
+        self.id = id
+        self.name = name
+    }
+}
+
+public extension ArtistRef {
+    /// Reconstructs the list `SearchCandidate.libraryAuthorMeta` encodes
+    /// into an `"artists"` key — the inverse of that encoding. Needed
+    /// wherever a `RemoteRef`'s already-resolved `authorMeta` has to be
+    /// turned back into a `SearchCandidate` (e.g. `DownloadManager`
+    /// independently re-matching a video source for a track whose audio
+    /// side already carries the real Spotify artist list) without losing
+    /// that list in the round trip.
+    static func array(from authorMeta: [String: JSONValue]) -> [ArtistRef] {
+        guard let entries = authorMeta["artists"]?.arrayValue else { return [] }
+        return entries.compactMap { entry in
+            guard let object = entry.objectValue, let name = object["name"]?.stringValue else { return nil }
+            return ArtistRef(id: object["id"]?.stringValue, name: name)
+        }
+    }
+}
+
 /// One item surfaced by search, a URL resolve, or a Spotify collection
 /// expand — the Swift-side equivalent of the plain-object shape threaded
 /// through the old pipeline's `resolve.js`/`innertube.js`/`spotify.js`
@@ -44,6 +77,20 @@ public struct SearchCandidate: Sendable, Hashable, Identifiable {
     public var viewCount: Double?
     public var thumbnailURLString: String?
     public var albumName: String?
+    /// Every contributing artist, in Spotify's own order — only ever
+    /// populated for a Spotify-origin candidate (`SpotifyClient.mapTrack`);
+    /// `author` above stays the flattened, comma-joined *display* string
+    /// (used for search matching/UI) regardless, so this doesn't replace
+    /// it — it's the structured list `author` used to collapse into with
+    /// no way back. Empty for a YouTube-origin candidate, same as `isrc`/
+    /// `spotifyID`.
+    public var artists: [ArtistRef]
+    /// The raw Spotify album object (or Spotify's own simplified/embedded
+    /// album shape, for a track fetched as part of an album/playlist) —
+    /// only ever populated for a Spotify-origin candidate. `albumName`
+    /// above is kept as a quick-access convenience even though it's
+    /// almost always also present in here as `albumMeta["name"]`.
+    public var albumMeta: [String: JSONValue]
 
     public init(
         id: String,
@@ -59,7 +106,9 @@ public struct SearchCandidate: Sendable, Hashable, Identifiable {
         durationMS: Double? = nil,
         viewCount: Double? = nil,
         thumbnailURLString: String? = nil,
-        albumName: String? = nil
+        albumName: String? = nil,
+        artists: [ArtistRef] = [],
+        albumMeta: [String: JSONValue] = [:]
     ) {
         self.id = id
         self.origin = origin
@@ -75,6 +124,8 @@ public struct SearchCandidate: Sendable, Hashable, Identifiable {
         self.viewCount = viewCount
         self.thumbnailURLString = thumbnailURLString
         self.albumName = albumName
+        self.artists = artists
+        self.albumMeta = albumMeta
     }
 
     public var thumbnailURL: URL? { thumbnailURLString.flatMap(URL.init(string:)) }
@@ -83,6 +134,38 @@ public struct SearchCandidate: Sendable, Hashable, Identifiable {
     /// a library entry — what `LibraryStore`'s dedup compares against.
     public var mediaSource: MediaSource {
         MediaSource(origin: origin.rawValue, url: url, spotifyID: spotifyID, youtubeID: youtubeID, isrc: isrc)
+    }
+
+    /// The `author_meta` block (§7) this candidate would carry into the
+    /// library — three-tier, same idea as `MediaInfoDocument.authorMeta`'s
+    /// doc comment: the primary (first) artist's `id`/`name` plus the
+    /// *full* artist list under `"artists"` when `artists` is populated
+    /// (Spotify-origin), a bare `{ "name": author }` fallback when it
+    /// isn't (YouTube-origin, or a Spotify response with an empty artist
+    /// list), or `{}` when there's no author at all to report.
+    public var libraryAuthorMeta: [String: JSONValue] {
+        guard let primary = artists.first else {
+            return author.isEmpty ? [:] : ["name": .string(author)]
+        }
+        var meta: [String: JSONValue] = ["name": .string(primary.name)]
+        if let id = primary.id { meta["id"] = .string(id) }
+        meta["artists"] = .array(artists.map { artist in
+            var object: [String: JSONValue] = ["name": .string(artist.name)]
+            if let id = artist.id { object["id"] = .string(id) }
+            return .object(object)
+        })
+        return meta
+    }
+
+    /// The `album_meta` block (§7) this candidate would carry into the
+    /// library: `albumMeta` verbatim when it's populated (Spotify-origin),
+    /// otherwise a bare `{ "name": albumName }` fallback for a source that
+    /// only ever offers a plain album name (currently just YouTube Music),
+    /// or `{}` when there's no album information at all.
+    public var libraryAlbumMeta: [String: JSONValue] {
+        if !albumMeta.isEmpty { return albumMeta }
+        if let albumName, !albumName.isEmpty { return ["name": .string(albumName)] }
+        return [:]
     }
 
     /// A not-yet-downloaded `Playable.remote` reference (§4) — only
@@ -98,9 +181,20 @@ public struct SearchCandidate: Sendable, Hashable, Identifiable {
     /// — typically a YouTube thumbnail once matching has happened) —
     /// see `ArtworkSelection`'s doc comment for why that distinction
     /// matters for streamed (not-yet-downloaded) playback specifically.
+    ///
+    /// `matchConfident`/`matchNote` carry `Match`'s verdict on however
+    /// this candidate was arrived at — `true`/`nil` by default (no
+    /// ambiguity: this is either a direct user pick or a candidate that
+    /// hasn't gone through `Match` at all yet), overridden by
+    /// `Match.pickAudioSource`/`pickVideoSource` callers once a weighted
+    /// search has actually happened. `DownloadManager`'s Conservative
+    /// Matching setting reads `matchConfident` off the `RemoteRef` this
+    /// produces before committing a download.
     public func remoteRef(
         availableKinds: Set<TrackKind> = [.audio, .video],
-        artworkURLOverride: URL? = nil
+        artworkURLOverride: URL? = nil,
+        matchConfident: Bool = true,
+        matchNote: MatchNote? = nil
     ) -> RemoteRef? {
         guard let youtubeID else { return nil }
         return RemoteRef(
@@ -110,7 +204,11 @@ public struct SearchCandidate: Sendable, Hashable, Identifiable {
             duration: (durationMS ?? 0) / 1000,
             source: mediaSource,
             availableKinds: availableKinds,
-            thumbnailURL: artworkURLOverride ?? thumbnailURL
+            thumbnailURL: artworkURLOverride ?? thumbnailURL,
+            albumMeta: libraryAlbumMeta,
+            authorMeta: libraryAuthorMeta,
+            matchConfident: matchConfident,
+            matchNote: matchNote
         )
     }
 }
@@ -509,7 +607,13 @@ enum YouTubeSearch {
             url: "https://www.youtube.com/watch?v=\(song.videoId)",
             youtubeID: song.videoId,
             durationMS: song.duration.map { $0 * 1000 },
-            thumbnailURLString: song.thumbnailURL?.absoluteString
+            // `YouTubeMusicSong.album` is real data the SDK already
+            // parses out of YTM's search response (unlike a plain `.web`
+            // video search result, which has no structured album field
+            // at all) — previously dropped here even though
+            // `SearchCandidate.albumName` existed to carry exactly this.
+            thumbnailURLString: song.thumbnailURL?.absoluteString,
+            albumName: song.album
         )
     }
 
@@ -671,12 +775,32 @@ public actor SpotifyClient {
     private static func mapTrack(_ track: [String: Any], albumOverride: [String: Any]? = nil) -> SearchCandidate? {
         guard let id = track["id"] as? String, let name = track["name"] as? String else { return nil }
         let album = albumOverride ?? (track["album"] as? [String: Any]) ?? [:]
-        let artists = (track["artists"] as? [[String: Any]]) ?? []
-        let author = artists.compactMap { $0["name"] as? String }.joined(separator: ", ")
+        let artistDicts = (track["artists"] as? [[String: Any]]) ?? []
+        // `artistRefs` keeps every contributing artist (id + name) as its
+        // own structured list — `author` below is still the flattened,
+        // comma-joined display string every other part of this pipeline
+        // (search matching, row/detail UI) already expects, but it's no
+        // longer the *only* record of who's on the track: the full list
+        // survives in `artists`/`libraryAuthorMeta` all the way through
+        // to what actually gets written to `library.json`.
+        let artistRefs = artistDicts.compactMap { dict -> ArtistRef? in
+            guard let artistName = dict["name"] as? String else { return nil }
+            return ArtistRef(id: dict["id"] as? String, name: artistName)
+        }
+        let author = artistRefs.map(\.name).joined(separator: ", ")
         let cover = bestImage((album["images"] as? [[String: Any]]) ?? [])
         let isrc = (track["external_ids"] as? [String: Any])?["isrc"] as? String
         let url = ((track["external_urls"] as? [String: Any])?["spotify"] as? String)
             ?? "https://open.spotify.com/track/\(id)"
+        // `album` here is Spotify's own embedded (simplified) Album
+        // object for a plain track lookup, or the full Album object when
+        // `albumOverride` was supplied (`resolveRef`'s `"album"` case,
+        // which already fetched `/albums/{id}` in full) — either way,
+        // it's real Spotify data worth keeping in full rather than
+        // reducing to just a name, so it can group/display correctly
+        // once downloaded (`MediaItem.albumID`/`.albumName` read this
+        // back out of `library.json`'s `album_meta`).
+        let albumMeta = album.isEmpty ? [:] : JSONValue.object(from: album)
 
         return SearchCandidate(
             id: "spotify:track:\(id)",
@@ -689,7 +813,9 @@ public actor SpotifyClient {
             isrc: isrc,
             durationMS: (track["duration_ms"] as? NSNumber)?.doubleValue,
             thumbnailURLString: cover,
-            albumName: album["name"] as? String
+            albumName: album["name"] as? String,
+            artists: artistRefs,
+            albumMeta: albumMeta
         )
     }
 

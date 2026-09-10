@@ -38,7 +38,7 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            VStack{
+            VStack(spacing: 0) {
 #if os(iOS)
                 if horizontalSizeClass == .compact {
                     compactBody
