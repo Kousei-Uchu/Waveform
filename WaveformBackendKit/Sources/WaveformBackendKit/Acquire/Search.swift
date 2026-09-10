@@ -649,158 +649,783 @@ enum YouTubeSearch {
 /// takes this as an optional parameter rather than owning credentials
 /// itself.
 public actor SpotifyClient {
-    public struct Credentials: Sendable {
-        public let clientID: String
-        public let clientSecret: String
-        public init(clientID: String, clientSecret: String) {
-            self.clientID = clientID
-            self.clientSecret = clientSecret
-        }
-    }
 
-    private let credentials: Credentials
-    private var cachedToken: String?
-    private var tokenExpiry: Date = .distantPast
+    public init() {}
 
-    public init(credentials: Credentials) {
-        self.credentials = credentials
-    }
+    private let noAuth = SpotifyAnonymousAuth.shared
 
-    private static let tokenURL = URL(string: "https://accounts.spotify.com/api/token")!
-    private static let apiBase = "https://api.spotify.com/v1"
+    // Web Player session state.
+    private var clientID: String?
+    private var clientVersion: String?
+    private var deviceID: String?
+    private var clientToken: String?
 
-    // MARK: - Search / expand
+    // The current Web Player JS contains the persisted GraphQL query hashes.
+    private var rawHashes: String?
+
+    private static let spotifyHomeURL = URL(string: "https://open.spotify.com")!
+    private static let tokenURL = URL(string: "https://open.spotify.com/api/token")!
+    private static let clientTokenURL = URL(string: "https://clienttoken.spotify.com/v1/clienttoken")!
+    private static let pathfinderURL = URL(string: "https://api-partner.spotify.com/pathfinder/v1/query")!
+
+    private static let userAgent =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) " +
+        "AppleWebKit/537.36 (KHTML, like Gecko) " +
+        "Chrome/140.0.0.0 Safari/537.36"
+
+    // MARK: - Search
 
     public func search(_ query: String) async throws -> [SearchCandidate] {
-        let json = try await apiJSON("/search", params: ["q": query, "type": "track", "limit": "10"])
-        let items = ((json["tracks"] as? [String: Any])?["items"] as? [[String: Any]]) ?? []
-        return items.compactMap { Self.mapTrack($0) }
+        let response = try await pathfinderQuery(
+            operationName: "searchDesktop",
+            variables: [
+                "searchTerm": query,
+                "offset": 0,
+                "limit": 10,
+                "numberOfTopResults": 5,
+                "includeAudiobooks": true,
+                "includeArtistHasConcertsField": false,
+                "includePreReleases": true,
+                "includeLocalConcertsField": false,
+            ]
+        )
+
+        return Self.mapSearchResults(response)
     }
 
-    /// Expands a parsed Spotify URL (`Search.parseSpotifyURL`) into its
-    /// tracks — the counterpart of `spotify.js`'s `resolveSpotifyRef`.
+    // MARK: - Resolve / expand
+
     public func resolveRef(type: String, id: String) async throws -> [SearchCandidate] {
         switch type {
         case "track":
-            let track = try await apiJSON("/tracks/\(id)")
-            return [Self.mapTrack(track)].compactMap { $0 }
+            let track = try await getTrack(id)
+            return [track]
+
         case "album":
-            let album = try await apiJSON("/albums/\(id)")
-            let items = ((album["tracks"] as? [String: Any])?["items"] as? [[String: Any]]) ?? []
-            return items.compactMap { Self.mapTrack($0, albumOverride: album) }
+            return try await getAlbumTracks(id)
+
         case "playlist":
-            let rows = try await playlistTracks(id)
-            return rows.compactMap { row -> SearchCandidate? in
-                guard let track = row["track"] as? [String: Any] else { return nil }
-                return Self.mapTrack(track)
-            }
+            return try await getPlaylistTracks(id)
+
         case "artist":
-            let top = try await apiJSON("/artists/\(id)/top-tracks", params: ["market": "US"])
-            let items = (top["tracks"] as? [[String: Any]]) ?? []
-            return items.compactMap { Self.mapTrack($0) }
+            return try await getArtistTopTracks(id)
+
         default:
-            throw SearchError.unsupported("Unsupported Spotify link type: \(type)")
+            throw SearchError.unsupported(
+                "Unsupported Spotify link type: \(type)"
+            )
         }
     }
 
-    // MARK: - Private
+    // MARK: - Track
 
-    private func playlistTracks(_ id: String) async throws -> [[String: Any]] {
-        var items: [[String: Any]] = []
-        var path = "/playlists/\(id)/tracks"
-        var params: [String: String] = ["limit": "100"]
-        // Spotify paginates via a full `next` URL rather than an opaque
-        // cursor — re-derive the path/params from it each page, same as
-        // `spotify.js`'s `getPlaylistTracks`.
-        while true {
-            let page = try await apiJSON(path, params: params)
-            items.append(contentsOf: (page["items"] as? [[String: Any]]) ?? [])
-            guard let next = page["next"] as? String, let comps = URLComponents(string: next) else { break }
-            path = comps.path.replacingOccurrences(of: "/v1", with: "")
-            params = Dictionary(uniqueKeysWithValues: (comps.queryItems ?? []).map { ($0.name, $0.value ?? "") })
+    private func getTrack(_ id: String) async throws -> SearchCandidate {
+        let response = try await pathfinderQuery(
+            operationName: "getTrack",
+            variables: [
+                "uri": "spotify:track:\(id)"
+            ]
+        )
+
+        guard let data = response["data"] as? [String: Any],
+              let track = data["trackUnion"] as? [String: Any]
+        else {
+            throw SearchError.unsupported(
+                "Spotify returned no track data for \(id)."
+            )
         }
-        return items
+
+        guard let candidate = Self.mapPathfinderTrack(track) else {
+            throw SearchError.unsupported(
+                "Spotify returned an invalid track for \(id)."
+            )
+        }
+
+        return candidate
     }
 
-    private func token() async throws -> String {
-        if let cachedToken, Date() < tokenExpiry.addingTimeInterval(-15) {
-            return cachedToken
+    // MARK: - Album
+
+    private func getAlbumTracks(_ id: String) async throws -> [SearchCandidate] {
+        // Mirrors SpotAPI's `PublicAlbum.paginate_album()`: operation name
+        // is "getAlbum" (not "queryAlbum"), and the persisted query
+        // requires locale/uri/offset/limit — sending only `uri` gets
+        // rejected as a variable-shape mismatch. UPPER_LIMIT of 343 tracks
+        // per page matches SpotAPI's own constant; we loop the same way it
+        // does rather than truncating to one page.
+        let upperLimit = 343
+        var offset = 0
+        var allItems: [SearchCandidate] = []
+        var totalCount = Int.max
+
+        while offset < totalCount {
+            let response = try await pathfinderQuery(
+                operationName: "getAlbum",
+                variables: [
+                    "locale": "",
+                    "uri": "spotify:album:\(id)",
+                    "offset": offset,
+                    "limit": upperLimit
+                ]
+            )
+
+            guard let data = response["data"] as? [String: Any],
+                  let album = data["albumUnion"] as? [String: Any]
+            else {
+                throw SearchError.unsupported(
+                    "Spotify returned no album data for \(id)."
+                )
+            }
+
+            guard let tracks = album["tracksV2"] as? [String: Any],
+                  let items = tracks["items"] as? [[String: Any]]
+            else {
+                break
+            }
+
+            allItems.append(contentsOf: items.compactMap { (item) -> SearchCandidate? in
+                let track =
+                    (item["track"] as? [String: Any])
+                    ?? (item["itemV2"] as? [String: Any])?["data"] as? [String: Any]
+
+                guard let track else {
+                    return nil
+                }
+
+                return Self.mapPathfinderTrack(track)
+            })
+
+            totalCount = (tracks["totalCount"] as? Int) ?? allItems.count
+            offset += upperLimit
         }
-        var request = URLRequest(url: Self.tokenURL)
-        request.httpMethod = "POST"
-        let basic = Data("\(credentials.clientID):\(credentials.clientSecret)".utf8).base64EncodedString()
-        request.setValue("Basic \(basic)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        request.httpBody = Data("grant_type=client_credentials".utf8)
+
+        return allItems
+    }
+
+    // MARK: - Playlist
+
+    private func getPlaylistTracks(_ id: String) async throws -> [SearchCandidate] {
+        // Mirrors SpotAPI's `PublicPlaylist.paginate_playlist()`.
+        let upperLimit = 343
+        var offset = 0
+        var allItems: [SearchCandidate] = []
+        var totalCount = Int.max
+
+        while offset < totalCount {
+            let response = try await pathfinderQuery(
+                operationName: "fetchPlaylist",
+                variables: [
+                    "uri": "spotify:playlist:\(id)",
+                    "offset": offset,
+                    "limit": upperLimit,
+                    "enableWatchFeedEntrypoint": false
+                ]
+            )
+
+            guard let data = response["data"] as? [String: Any],
+                  let playlist = data["playlistV2"] as? [String: Any],
+                  let content = playlist["content"] as? [String: Any]
+            else {
+                throw SearchError.unsupported(
+                    "Spotify returned no playlist data for \(id)."
+                )
+            }
+
+            allItems.append(contentsOf: Self.extractPlaylistTracks(from: playlist))
+            totalCount = (content["totalCount"] as? Int) ?? allItems.count
+            offset += upperLimit
+        }
+
+        return allItems
+    }
+
+    // MARK: - Artist
+
+    private func getArtistTopTracks(_ id: String) async throws -> [SearchCandidate] {
+        let response = try await pathfinderQuery(
+            operationName: "queryArtistOverview",
+            variables: [
+                "uri": "spotify:artist:\(id)",
+                "locale": "en"
+            ],
+            method: "GET"
+        )
+
+        guard let data = response["data"] as? [String: Any],
+              let artist = data["artistUnion"] as? [String: Any]
+        else {
+            throw SearchError.unsupported(
+                "Spotify returned no artist data for \(id)."
+            )
+        }
+
+        return Self.extractArtistTopTracks(from: artist)
+    }
+
+    // MARK: - Pathfinder
+
+    private func pathfinderQuery(
+        operationName: String,
+        variables: [String: Any],
+        method: String = "POST"
+    ) async throws -> [String: Any] {
+
+        let accessToken = try await noAuth.currentToken()
+        try await ensureSession()
+
+        guard let clientToken,
+              let clientVersion
+        else {
+            throw SearchError.notConfigured(
+                "Spotify Web Player session could not be initialized."
+            )
+        }
+
+        guard let hash = try await persistedQueryHash(operationName) else {
+            throw SearchError.unsupported(
+                "Spotify Web Player does not contain the '\(operationName)' query hash."
+            )
+        }
+
+        // SpotAPI sends every read (search/getTrack/getAlbum/fetchPlaylist
+        // as POST, queryArtistOverview as GET) with operationName/
+        // variables/extensions as URL query parameters and an empty body —
+        // never as a JSON POST body. Match that shape exactly rather than
+        // the JSON-body form, since it's a materially different request.
+        let variablesJSON = try JSONSerialization.data(withJSONObject: variables, options: [.sortedKeys])
+        let extensions: [String: Any] = [
+            "persistedQuery": [
+                "version": 1,
+                "sha256Hash": hash
+            ]
+        ]
+        let extensionsJSON = try JSONSerialization.data(withJSONObject: extensions, options: [.sortedKeys])
+
+        var components = URLComponents(url: Self.pathfinderURL, resolvingAgainstBaseURL: false)!
+        components.queryItems = [
+            URLQueryItem(name: "operationName", value: operationName),
+            URLQueryItem(name: "variables", value: String(data: variablesJSON, encoding: .utf8)),
+            URLQueryItem(name: "extensions", value: String(data: extensionsJSON, encoding: .utf8))
+        ]
+
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = method
+
+        request.setValue(
+            "application/json;charset=UTF-8",
+            forHTTPHeaderField: "Content-Type"
+        )
+        request.setValue(
+            "application/json",
+            forHTTPHeaderField: "Accept"
+        )
+        request.setValue(
+            "Bearer \(accessToken)",
+            forHTTPHeaderField: "Authorization"
+        )
+        request.setValue(
+            clientToken,
+            forHTTPHeaderField: "Client-Token"
+        )
+        request.setValue(
+            clientVersion,
+            forHTTPHeaderField: "Spotify-App-Version"
+        )
+        request.setValue(
+            "en",
+            forHTTPHeaderField: "Accept-Language"
+        )
+        request.setValue(
+            "https://open.spotify.com",
+            forHTTPHeaderField: "Origin"
+        )
+        request.setValue(
+            "https://open.spotify.com/",
+            forHTTPHeaderField: "Referer"
+        )
+        request.setValue(
+            Self.userAgent,
+            forHTTPHeaderField: "User-Agent"
+        )
 
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            throw SearchError.httpError((response as? HTTPURLResponse)?.statusCode ?? -1)
+
+        guard let http = response as? HTTPURLResponse else {
+            throw SearchError.httpError(-1)
         }
-        let decoded = try JSONDecoder().decode(TokenResponse.self, from: data)
-        cachedToken = decoded.accessToken
-        tokenExpiry = Date().addingTimeInterval(decoded.expiresIn)
-        return decoded.accessToken
+
+        print("SPOTAPI PORT RESP: [\(operationName)] \(String(data: data, encoding: .utf8) ?? "<non-UTF8 response>")")
+
+        guard (200..<300).contains(http.statusCode) else {
+            print("Spotify Pathfinder HTTP \(http.statusCode)")
+            throw SearchError.httpError(http.statusCode)
+        }
+
+        guard let json = try JSONSerialization.jsonObject(with: data)
+                as? [String: Any]
+        else {
+            throw SearchError.unsupported(
+                "Spotify returned invalid Pathfinder JSON."
+            )
+        }
+
+        if let errors = json["errors"] {
+            print("Spotify Pathfinder errors: \(errors)")
+            throw SearchError.unsupported(
+                "Spotify rejected the '\(operationName)' request."
+            )
+        }
+
+        return json
     }
 
-    private struct TokenResponse: Decodable {
-        let accessToken: String
-        let expiresIn: Double
-        enum CodingKeys: String, CodingKey {
-            case accessToken = "access_token"
-            case expiresIn = "expires_in"
+    // MARK: - Web Player session
+
+    private func ensureSession() async throws {
+        if clientID != nil,
+           clientVersion != nil,
+           deviceID != nil,
+           clientToken != nil {
+            return
+        }
+
+        var request = URLRequest(url: Self.spotifyHomeURL)
+        request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue(
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            forHTTPHeaderField: "Accept"
+        )
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let http = response as? HTTPURLResponse,
+              (200..<300).contains(http.statusCode)
+        else {
+            throw SearchError.httpError(
+                (response as? HTTPURLResponse)?.statusCode ?? -1
+            )
+        }
+
+        let html = String(data: data, encoding: .utf8) ?? ""
+
+        // Spotify embeds the current Web Player configuration in:
+        //
+        // <script id="appServerConfig" type="text/plain">BASE64...</script>
+        //
+        guard let configBase64 = Self.extract(
+            html,
+            between: #"<script id="appServerConfig" type="text/plain">"#,
+            and: "</script>"
+        ),
+        let configData = Data(base64Encoded: configBase64),
+        let config = try JSONSerialization.jsonObject(
+            with: configData
+        ) as? [String: Any]
+        else {
+            throw SearchError.unsupported(
+                "Could not read Spotify's Web Player configuration."
+            )
+        }
+
+        guard let version = config["clientVersion"] as? String else {
+            throw SearchError.unsupported(
+                "Spotify did not provide a Web Player client version."
+            )
+        }
+
+        clientVersion = version
+
+        // SpotAPI's BaseClient._get_auth_vars() reads client_id straight
+        // off the same /api/token response that hands back the bearer
+        // token (resp.response["clientId"]) — that's the only place it
+        // comes from. Use that, not the homepage's appServerConfig, which
+        // doesn't reliably carry a clientId key.
+        let guestToken = try await noAuth.currentGuestToken()
+        let accessToken = guestToken.accessToken
+        if let tokenClientID = guestToken.clientID {
+            clientID = tokenClientID
+        }
+
+        // The sp_t cookie is normally generated by the Web Player.
+        // URLSession's default cookie storage may contain it after the
+        // homepage request.
+        if let cookies = HTTPCookieStorage.shared.cookies(for: Self.spotifyHomeURL),
+           let spT = cookies.first(where: { $0.name == "sp_t" })?.value {
+            deviceID = spT
+        }
+
+        // If Spotify didn't expose sp_t through the shared cookie store,
+        // generate a stable local UUID. The client-token service accepts
+        // a device identifier and this is sufficient for the anonymous
+        // Web Player session.
+        if deviceID == nil {
+            deviceID = UUID().uuidString
+        }
+
+        // The current Web Player's token endpoint returns clientId in
+        // addition to accessToken. Our SpotifyAnonymousAuth intentionally
+        // exposes only the bearer token, so client ID is optional here.
+        //
+        // The client-token request below can still use the locally
+        // generated device ID.
+        guard let deviceID else {
+            throw SearchError.unsupported(
+                "Could not establish a Spotify Web Player device ID."
+            )
+        }
+
+        var clientTokenRequest = URLRequest(url: Self.clientTokenURL)
+        clientTokenRequest.httpMethod = "POST"
+        clientTokenRequest.setValue(
+            "application/json",
+            forHTTPHeaderField: "Content-Type"
+        )
+        clientTokenRequest.setValue(
+            "application/json",
+            forHTTPHeaderField: "Accept"
+        )
+        clientTokenRequest.setValue(
+            Self.userAgent,
+            forHTTPHeaderField: "User-Agent"
+        )
+
+        let clientData: [String: Any] = [
+            "client_version": version,
+            "client_id": clientID ?? "",
+            "js_sdk_data": [
+                "device_brand": "unknown",
+                "device_model": "unknown",
+                "os": "macos",
+                "os_version": ProcessInfo.processInfo.operatingSystemVersionString,
+                "device_id": deviceID,
+                "device_type": "computer"
+            ]
+        ]
+
+        clientTokenRequest.httpBody = try JSONSerialization.data(
+            withJSONObject: ["client_data": clientData],
+            options: []
+        )
+
+        let (clientTokenData, clientTokenResponse) =
+            try await URLSession.shared.data(for: clientTokenRequest)
+
+        guard let clientTokenHTTP = clientTokenResponse as? HTTPURLResponse,
+              (200..<300).contains(clientTokenHTTP.statusCode)
+        else {
+            print(
+                "Spotify client-token HTTP " +
+                "\(String(describing: (clientTokenResponse as? HTTPURLResponse)?.statusCode))"
+            )
+            print(
+                String(data: clientTokenData, encoding: .utf8)
+                    ?? "<non-UTF8 response>"
+            )
+            throw SearchError.httpError(
+                (clientTokenResponse as? HTTPURLResponse)?.statusCode ?? -1
+            )
+        }
+
+        guard let clientTokenJSON =
+                try JSONSerialization.jsonObject(with: clientTokenData)
+                as? [String: Any],
+              let granted =
+                clientTokenJSON["granted_token"] as? [String: Any],
+              let token = granted["token"] as? String
+        else {
+            throw SearchError.unsupported(
+                "Spotify did not return a Web Player client token."
+            )
+        }
+
+        clientToken = token
+
+        _ = accessToken
+    }
+
+    // MARK: - Persisted query hashes
+
+    private func persistedQueryHash(_ operationName: String) async throws -> String? {
+        if rawHashes == nil {
+            try await loadWebPlayerHashes()
+        }
+
+        guard let rawHashes else {
+            return nil
+        }
+
+        // SpotAPI uses this exact basic strategy against the Web Player's
+        // bundled persisted-query registry: operationName + query/mutation
+        // followed by the SHA-256 hash.
+        if let range = rawHashes.range(
+            of: "\"\(operationName)\",\"query\",\""
+        ) {
+            let start = range.upperBound
+            let remainder = rawHashes[start...]
+
+            if let end = remainder.firstIndex(of: "\"") {
+                return String(remainder[..<end])
+            }
+        }
+
+        if let range = rawHashes.range(
+            of: "\"\(operationName)\",\"mutation\",\""
+        ) {
+            let start = range.upperBound
+            let remainder = rawHashes[start...]
+
+            if let end = remainder.firstIndex(of: "\"") {
+                return String(remainder[..<end])
+            }
+        }
+
+        return nil
+    }
+
+    private func loadWebPlayerHashes() async throws {
+        var request = URLRequest(url: Self.spotifyHomeURL)
+        request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue(
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            forHTTPHeaderField: "Accept"
+        )
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let http = response as? HTTPURLResponse,
+              (200..<300).contains(http.statusCode)
+        else {
+            throw SearchError.httpError(
+                (response as? HTTPURLResponse)?.statusCode ?? -1
+            )
+        }
+
+        let html = String(data: data, encoding: .utf8) ?? ""
+
+        // Spotify currently exposes multiple JS packs. SpotAPI specifically
+        // selects the Web Player pack whose URL contains "web-player".
+        let scripts = Self.extractScriptURLs(from: html)
+
+        guard let webPlayerURL = scripts.first(where: {
+            $0.contains("web-player/web-player") && $0.hasSuffix(".js")
+        }) else {
+            throw SearchError.unsupported(
+                "Could not locate Spotify's Web Player JavaScript bundle."
+            )
+        }
+
+        let js = try await downloadText(URL(string: webPlayerURL)!)
+
+        var combined = js
+
+        // Direct port of SpotAPI's extract_mappings()/combine_chunks() in
+        // spotapi/utils/strings.py and spotapi/client.py::get_sha256_hash().
+        // The main pack does NOT reference its chunks as literal URLs
+        // anywhere in the text — webpack instead embeds two id -> string
+        // object literals (e.g. `{47:"e2f9",132:"ab"}`), and chunk files
+        // are named `<value from the 5th such object>.<value from the
+        // 4th>.js`, served from a fixed CDN path. This indexing (4th/5th
+        // occurrence specifically) is exactly as fragile as it looks in
+        // the reference implementation — it's empirical, not documented
+        // by Spotify — so if this breaks again after a Web Player
+        // redeploy, re-diff against SpotAPI's current `extract_mappings`.
+        let mappingObjects = Self.findChunkMappingObjects(in: js)
+
+        guard mappingObjects.count >= 5 else {
+            throw SearchError.unsupported(
+                "Could not find Spotify's Web Player chunk mapping tables."
+            )
+        }
+
+        // SpotAPI: str_mapping = matches[3], hash_mapping = matches[4],
+        // then combine_chunks(hash_mapping, str_mapping) builds
+        // "{hash_mapping[key]}.{str_mapping[key]}.js".
+        let strMapping = Self.parseChunkMapping(mappingObjects[3])
+        let hashMapping = Self.parseChunkMapping(mappingObjects[4])
+
+        var chunkFilenames: [String] = []
+        for (key, hashValue) in hashMapping {
+            if let strValue = strMapping[key] {
+                chunkFilenames.append("\(hashValue).\(strValue).js")
+            }
+        }
+
+        for filename in chunkFilenames {
+            guard let url = URL(
+                string: "https://open.spotifycdn.com/cdn/build/web-player/\(filename)"
+            ) else {
+                continue
+            }
+
+            if let chunk = try? await downloadText(url) {
+                combined += "\n"
+                combined += chunk
+            }
+        }
+
+        rawHashes = combined
+    }
+
+    /// Finds every JS/Python-literal-compatible object of the shape
+    /// `{47:"e2f9",132:"ab"}` in the given text — matches SpotAPI's
+    /// `extract_mappings` regex (`\{\d+:"[^"]+"(?:,\d+:"[^"]+")*\}`)
+    /// exactly, just without the `ast.literal_eval` step (done separately
+    /// by `parseChunkMapping`).
+    private static func findChunkMappingObjects(in js: String) -> [String] {
+        let pattern = #"\{\d+:"[^"]+"(?:,\d+:"[^"]+")*\}"#
+
+        guard let regex = try? NSRegularExpression(pattern: pattern) else {
+            return []
+        }
+
+        let range = NSRange(js.startIndex..<js.endIndex, in: js)
+
+        return regex.matches(in: js, range: range).compactMap { match in
+            guard let matchRange = Range(match.range, in: js) else {
+                return nil
+            }
+
+            return String(js[matchRange])
         }
     }
 
-    private func apiJSON(_ path: String, params: [String: String] = [:]) async throws -> [String: Any] {
-        guard var components = URLComponents(string: Self.apiBase + path) else {
-            throw SearchError.unsupported("Malformed Spotify API path: \(path)")
+    /// Parses one `{47:"e2f9",132:"ab"}`-shaped object literal into an
+    /// `[Int: String]` — the Swift equivalent of `ast.literal_eval` on
+    /// that exact shape.
+    private static func parseChunkMapping(_ object: String) -> [Int: String] {
+        var result: [Int: String] = [:]
+        let pattern = #"(\d+):"([^"]*)""#
+
+        guard let regex = try? NSRegularExpression(pattern: pattern) else {
+            return result
         }
-        if !params.isEmpty {
-            components.queryItems = params.map { URLQueryItem(name: $0.key, value: $0.value) }
+
+        let range = NSRange(object.startIndex..<object.endIndex, in: object)
+
+        for match in regex.matches(in: object, range: range) {
+            guard let keyRange = Range(match.range(at: 1), in: object),
+                  let valueRange = Range(match.range(at: 2), in: object),
+                  let key = Int(object[keyRange])
+            else {
+                continue
+            }
+
+            result[key] = String(object[valueRange])
         }
-        guard let url = components.url else {
-            throw SearchError.unsupported("Malformed Spotify API path: \(path)")
-        }
+
+        return result
+    }
+
+    private func downloadText(_ url: URL) async throws -> String {
         var request = URLRequest(url: url)
-        request.setValue("Bearer \(try await token())", forHTTPHeaderField: "Authorization")
+        request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
 
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            throw SearchError.httpError((response as? HTTPURLResponse)?.statusCode ?? -1)
+
+        guard let http = response as? HTTPURLResponse,
+              (200..<300).contains(http.statusCode)
+        else {
+            throw SearchError.httpError(
+                (response as? HTTPURLResponse)?.statusCode ?? -1
+            )
         }
-        return (try? JSONSerialization.jsonObject(with: data) as? [String: Any]) ?? [:]
+
+        return String(data: data, encoding: .utf8) ?? ""
     }
 
-    private static func mapTrack(_ track: [String: Any], albumOverride: [String: Any]? = nil) -> SearchCandidate? {
-        guard let id = track["id"] as? String, let name = track["name"] as? String else { return nil }
-        let album = albumOverride ?? (track["album"] as? [String: Any]) ?? [:]
-        let artistDicts = (track["artists"] as? [[String: Any]]) ?? []
-        // `artistRefs` keeps every contributing artist (id + name) as its
-        // own structured list — `author` below is still the flattened,
-        // comma-joined display string every other part of this pipeline
-        // (search matching, row/detail UI) already expects, but it's no
-        // longer the *only* record of who's on the track: the full list
-        // survives in `artists`/`libraryAuthorMeta` all the way through
-        // to what actually gets written to `library.json`.
-        let artistRefs = artistDicts.compactMap { dict -> ArtistRef? in
-            guard let artistName = dict["name"] as? String else { return nil }
-            return ArtistRef(id: dict["id"] as? String, name: artistName)
+    // MARK: - Pathfinder mapping
+
+    private static func mapSearchResults(
+        _ response: [String: Any]
+    ) -> [SearchCandidate] {
+
+        guard let data = response["data"] as? [String: Any],
+              let search = data["searchV2"] as? [String: Any],
+              let tracks = search["tracksV2"] as? [String: Any],
+              let items = tracks["items"] as? [[String: Any]]
+        else {
+            return []
         }
+
+        return items.compactMap { item in
+            guard let itemV2 = item["item"] as? [String: Any],
+                  let track = itemV2["data"] as? [String: Any]
+            else {
+                return nil
+            }
+
+            return mapPathfinderTrack(track)
+        }
+    }
+
+    private static func mapPathfinderTrack(
+        _ track: [String: Any],
+        albumOverride: JSONValue? = nil
+    ) -> SearchCandidate? {
+
+        guard let id = track["id"] as? String,
+              let name = track["name"] as? String
+        else {
+            return nil
+        }
+
+        let artistDicts = extractArtists(from: track)
+
+        let artistRefs = artistDicts.compactMap { dict -> ArtistRef? in
+            // The live Pathfinder schema nests the display name under
+            // `profile.name` and encodes the artist id inside a
+            // `spotify:artist:<id>` uri — there is no flat `name`/`id` on
+            // the artist object itself. Fall back to a flat shape too, in
+            // case a different operation (or a future schema change)
+            // reverts to it.
+            let name =
+                (dict["profile"] as? [String: Any])?["name"] as? String
+                ?? dict["name"] as? String
+
+            guard let name else {
+                return nil
+            }
+
+            let id =
+                dict["id"] as? String
+                ?? Self.spotifyID(fromURI: dict["uri"] as? String, kind: "artist")
+
+            return ArtistRef(
+                id: id,
+                name: name
+            )
+        }
+
         let author = artistRefs.map(\.name).joined(separator: ", ")
-        let cover = bestImage((album["images"] as? [[String: Any]]) ?? [])
-        let isrc = (track["external_ids"] as? [String: Any])?["isrc"] as? String
-        let url = ((track["external_urls"] as? [String: Any])?["spotify"] as? String)
-            ?? "https://open.spotify.com/track/\(id)"
-        // `album` here is Spotify's own embedded (simplified) Album
-        // object for a plain track lookup, or the full Album object when
-        // `albumOverride` was supplied (`resolveRef`'s `"album"` case,
-        // which already fetched `/albums/{id}` in full) — either way,
-        // it's real Spotify data worth keeping in full rather than
-        // reducing to just a name, so it can group/display correctly
-        // once downloaded (`MediaItem.albumID`/`.albumName` read this
-        // back out of `library.json`'s `album_meta`).
-        let albumMeta = album.isEmpty ? [:] : JSONValue.object(from: album)
+
+        let album: [String: Any]
+        let albumMeta: [String: JSONValue]
+
+        if let albumOverride {
+            albumMeta = albumOverride.objectValue ?? [:]
+            album = albumOverride.objectValue ?? [:]
+        } else if let albumOfTrack = track["albumOfTrack"] as? [String: Any] {
+            album = albumOfTrack
+            albumMeta = JSONValue.object(from: albumOfTrack)
+        } else {
+            album = [:]
+            albumMeta = [:]
+        }
+
+        let cover =
+            extractPathfinderImage(track["visualIdentity"])
+            ?? extractPathfinderImage(album["coverArt"])
+
+        let durationMS =
+            (track["duration"] as? [String: Any])?["totalMilliseconds"]
+                as? NSNumber
+
+        let spotifyURL =
+            "https://open.spotify.com/track/\(id)"
+
+        let isrc =
+            ((track["externalIds"] as? [String: Any])?["isrc"] as? String)
+            ?? ((track["external_ids"] as? [String: Any])?["isrc"] as? String)
 
         return SearchCandidate(
             id: "spotify:track:\(id)",
@@ -808,10 +1433,10 @@ public actor SpotifyClient {
             title: name,
             author: author.isEmpty ? "Unknown Artist" : author,
             rawTitle: name,
-            url: url,
+            url: spotifyURL,
             spotifyID: id,
             isrc: isrc,
-            durationMS: (track["duration_ms"] as? NSNumber)?.doubleValue,
+            durationMS: durationMS?.doubleValue,
             thumbnailURLString: cover,
             albumName: album["name"] as? String,
             artists: artistRefs,
@@ -819,7 +1444,188 @@ public actor SpotifyClient {
         )
     }
 
-    private static func bestImage(_ images: [[String: Any]]) -> String? {
-        images.max { ($0["width"] as? Int ?? 0) < ($1["width"] as? Int ?? 0) }?["url"] as? String
+    private static func extractArtists(
+        from track: [String: Any]
+    ) -> [[String: Any]] {
+
+        if let artists = track["artists"] as? [String: Any],
+           let items = artists["items"] as? [[String: Any]] {
+            return items
+        }
+
+        if let artists = track["artists"] as? [[String: Any]] {
+            return artists
+        }
+
+        var result: [[String: Any]] = []
+
+        if let first = track["firstArtist"] as? [String: Any] {
+            result.append(first)
+        }
+
+        if let others = track["otherArtists"] as? [String: Any],
+           let items = others["items"] as? [[String: Any]] {
+            result.append(contentsOf: items)
+        }
+
+        return result
+    }
+
+    private static func extractPathfinderImage(
+        _ value: Any?
+    ) -> String? {
+
+        guard let object = value as? [String: Any] else {
+            return nil
+        }
+
+        if let sources = object["sources"] as? [[String: Any]] {
+            // Prefer the largest source.
+            return sources
+                .compactMap { $0["url"] as? String }
+                .last
+                ?? sources.compactMap { $0["url"] as? String }.first
+        }
+
+        for key in ["large", "medium", "small"] {
+            if let url = object[key] as? String {
+                return url
+            }
+        }
+
+        return nil
+    }
+
+    /// Pulls the bare id out of a `spotify:<kind>:<id>` uri, e.g.
+    /// `spotifyID(fromURI: "spotify:artist:6Jahk...", kind: "artist")`
+    /// returns `"6Jahk..."`. Returns nil if the uri is missing or doesn't
+    /// match the expected prefix.
+    private static func spotifyID(fromURI uri: String?, kind: String) -> String? {
+        guard let uri else { return nil }
+        let prefix = "spotify:\(kind):"
+        guard uri.hasPrefix(prefix) else { return nil }
+        return String(uri.dropFirst(prefix.count))
+    }
+
+    private static func extractPlaylistTracks(
+        from playlist: [String: Any]
+    ) -> [SearchCandidate] {
+
+        guard let contents = playlist["content"] as? [String: Any],
+              let items = contents["items"] as? [[String: Any]]
+        else {
+            return []
+        }
+
+        return items.compactMap { item in
+            let track =
+                (item["itemV2"] as? [String: Any])?["data"] as? [String: Any]
+                ?? item["track"] as? [String: Any]
+
+            guard let track else {
+                return nil
+            }
+
+            return mapPathfinderTrack(track)
+        }
+    }
+
+    private static func extractArtistTopTracks(
+        from artist: [String: Any]
+    ) -> [SearchCandidate] {
+
+        // Spotify has changed the exact nesting of the artist overview
+        // payload several times. Look for the first useful track collection
+        // rather than tying the mapper to one unnecessary intermediate key.
+
+        let possibleKeys = [
+            "topTracks",
+            "topTracksV2",
+            "popularTracks",
+            "topTracksByRegion"
+        ]
+
+        for key in possibleKeys {
+            if let object = artist[key] as? [String: Any],
+               let items = object["items"] as? [[String: Any]] {
+
+                return items.compactMap { item in
+                    let track =
+                        (item["track"] as? [String: Any])
+                        ?? (item["itemV2"] as? [String: Any])?["data"] as? [String: Any]
+                        ?? item["data"] as? [String: Any]
+
+                    guard let track else {
+                        return nil
+                    }
+
+                    return mapPathfinderTrack(track)
+                }
+            }
+        }
+
+        // Some responses expose the tracks directly as an array.
+        for key in possibleKeys {
+            if let items = artist[key] as? [[String: Any]] {
+                return items.compactMap { item in
+                    let track =
+                        (item["track"] as? [String: Any])
+                        ?? (item["data"] as? [String: Any])
+
+                    guard let track else {
+                        return nil
+                    }
+
+                    return mapPathfinderTrack(track)
+                }
+            }
+        }
+
+        return []
+    }
+
+    // MARK: - HTML helpers
+
+    private static func extract(
+        _ string: String,
+        between start: String,
+        and end: String
+    ) -> String? {
+
+        guard let startRange = string.range(of: start) else {
+            return nil
+        }
+
+        let remainder = string[startRange.upperBound...]
+
+        guard let endRange = remainder.range(of: end) else {
+            return nil
+        }
+
+        return String(remainder[..<endRange.lowerBound])
+    }
+
+    private static func extractScriptURLs(
+        from text: String
+    ) -> [String] {
+
+        let pattern = #"(?i)(?:src=["']|https?:)?(https?://[^"' ]+\.js(?:\?[^"' ]*)?)"#
+
+        guard let regex = try? NSRegularExpression(
+            pattern: pattern,
+            options: []
+        ) else {
+            return []
+        }
+
+        let range = NSRange(text.startIndex..<text.endIndex, in: text)
+
+        return regex.matches(in: text, range: range).compactMap { match in
+            guard let matchRange = Range(match.range(at: 1), in: text) else {
+                return nil
+            }
+
+            return String(text[matchRange])
+        }
     }
 }

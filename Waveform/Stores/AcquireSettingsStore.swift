@@ -15,12 +15,6 @@ import WaveformBackendKit
 /// leak it to.
 @MainActor
 final class AcquireSettingsStore: ObservableObject {
-    @Published var spotifyClientID: String {
-        didSet { UserDefaults.standard.set(spotifyClientID, forKey: Keys.spotifyClientID) }
-    }
-    @Published var spotifyClientSecret: String {
-        didSet { UserDefaults.standard.set(spotifyClientSecret, forKey: Keys.spotifyClientSecret) }
-    }
     @Published var geniusToken: String {
         didSet { UserDefaults.standard.set(geniusToken, forKey: Keys.geniusToken) }
     }
@@ -35,16 +29,12 @@ final class AcquireSettingsStore: ObservableObject {
     }
 
     private enum Keys {
-        static let spotifyClientID = "waveform.spotifyClientID"
-        static let spotifyClientSecret = "waveform.spotifyClientSecret"
         static let geniusToken = "waveform.geniusToken"
         static let conservativeMatching = "waveform.conservativeMatching"
     }
 
     init() {
         let defaults = UserDefaults.standard
-        self.spotifyClientID = defaults.string(forKey: Keys.spotifyClientID) ?? ""
-        self.spotifyClientSecret = defaults.string(forKey: Keys.spotifyClientSecret) ?? ""
         self.geniusToken = defaults.string(forKey: Keys.geniusToken) ?? ""
         self.conservativeMatching = defaults.bool(forKey: Keys.conservativeMatching)
     }
@@ -53,10 +43,7 @@ final class AcquireSettingsStore: ObservableObject {
     /// `Search.pipeline`'s "Spotify search is silently skipped, not
     /// errored" contract for an unconfigured client (§8).
     var spotifyClient: SpotifyClient? {
-        let id = spotifyClientID.trimmingCharacters(in: .whitespacesAndNewlines)
-        let secret = spotifyClientSecret.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !id.isEmpty, !secret.isEmpty else { return nil }
-        return SpotifyClient(credentials: .init(clientID: id, clientSecret: secret))
+        return SpotifyClient()
     }
 
     /// `nil` when no token is configured — `Match.pickVideoSource` treats
@@ -68,6 +55,5 @@ final class AcquireSettingsStore: ObservableObject {
         return GeniusClient(accessToken: token)
     }
 
-    var isSpotifyConfigured: Bool { spotifyClient != nil }
     var isGeniusConfigured: Bool { geniusClient != nil }
 }

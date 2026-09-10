@@ -12,6 +12,7 @@ struct WaveformApp: App {
     @StateObject private var artwork = ArtworkStore()
     @ObservedObject private var palette = PaletteStore.shared
     @StateObject private var liveActivity = LiveActivityManager()
+    @StateObject private var nowPlayingWidgetSync = NowPlayingWidgetSync()
     @StateObject private var router = DeepLinkRouter()
     @StateObject private var downloadManager: DownloadManager
     @ObservedObject private var accessibility = AccessibilitySettingsStore.shared
@@ -98,6 +99,7 @@ struct WaveformApp: App {
                     }
                     .onAppear {
                         liveActivity.start(player: player, queue: queue, artwork: artwork)
+                        nowPlayingWidgetSync.start(player: player, queue: queue, artwork: artwork, palette: palette)
                         palette.currentItemID = queue.current?.playable.id
                         loadTintIfNeeded(for: queue.current)
                     }

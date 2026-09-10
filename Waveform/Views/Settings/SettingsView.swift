@@ -99,22 +99,6 @@ struct SettingsView: View {
     private var acquireSection: some View {
         Section {
             LabeledContent {
-                TextField("Client ID", text: $acquireSettings.spotifyClientID)
-                    #if os(iOS)
-                    .textInputAutocapitalization(.never)
-                    #endif
-                    .autocorrectionDisabled()
-                    .multilineTextAlignment(.trailing)
-            } label: {
-                Text("Spotify Client ID")
-            }
-            LabeledContent {
-                SecureField("Client Secret", text: $acquireSettings.spotifyClientSecret)
-                    .multilineTextAlignment(.trailing)
-            } label: {
-                Text("Spotify Client Secret")
-            }
-            LabeledContent {
                 SecureField("Optional", text: $acquireSettings.geniusToken)
                     .multilineTextAlignment(.trailing)
             } label: {
@@ -131,9 +115,6 @@ struct SettingsView: View {
 
     private var acquireFooter: String {
         var lines = ["Spotify search requires a client id and secret from Spotify's developer dashboard. Genius is optional — it improves music-video matching when configured."]
-        if !acquireSettings.isSpotifyConfigured {
-            lines.append("Spotify search is currently off; YouTube search still works without it.")
-        }
         lines.append("Conservative Matching holds back a download whose audio or video match scored too low to trust, asking first instead of guessing — if only one of audio/video is confident, the other is skipped until you confirm.")
         return lines.joined(separator: " ")
     }

@@ -5,5 +5,6 @@ import SwiftUI
 struct WaveformWidgetsBundle: WidgetBundle {
     var body: some Widget {
         PlaybackActivityWidget()
+        NowPlayingWidget()
     }
 }

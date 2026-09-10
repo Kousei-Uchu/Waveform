@@ -148,15 +148,8 @@ struct SearchDownloadView: View {
                 .font(.system(size: 36))
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
-            Text("Search YouTube\(acquireSettings.isSpotifyConfigured ? " and Spotify" : "")")
+            Text("Search YouTube and Spotify")
                 .foregroundStyle(.secondary)
-            if !acquireSettings.isSpotifyConfigured {
-                Text("Add Spotify credentials in Settings to search there too.")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
