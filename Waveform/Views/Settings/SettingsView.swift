@@ -5,10 +5,11 @@ import WaveformBackendKit
 /// `MediaLibrary`-era stats ("Archives", "Duplicates Merged") are gone —
 /// everything now arrives through the Search & Download screen, and the
 /// library is one managed folder owned by `LibraryStore`/`VaultStore`.
-/// Adds the three things spec §8 calls for that didn't exist before:
-/// Spotify client id/secret + optional Genius token, a default download
-/// resolution cap, and the Shrink AV1/Opus knobs (scoped to Shrink now,
-/// not the download hot path — see `PlaybackSettingsStore`).
+/// Adds the things spec §8 calls for that didn't exist before: a
+/// Genius-assisted-matching toggle (no token needed — search and Genius
+/// are both proxied through `waveform-search-backend` now), a default
+/// download resolution cap, and the Shrink AV1/Opus knobs (scoped to
+/// Shrink now, not the download hot path — see `PlaybackSettingsStore`).
 struct SettingsView: View {
     @EnvironmentObject private var library: LibraryStore
     @EnvironmentObject private var vaultStore: VaultStore
@@ -98,12 +99,7 @@ struct SettingsView: View {
     @ViewBuilder
     private var acquireSection: some View {
         Section {
-            LabeledContent {
-                SecureField("Optional", text: $acquireSettings.geniusToken)
-                    .multilineTextAlignment(.trailing)
-            } label: {
-                Text("Genius Token")
-            }
+            Toggle("Genius-Assisted Matching", isOn: $acquireSettings.useGeniusMatching)
             Toggle("Conservative Matching", isOn: $acquireSettings.conservativeMatching)
         } header: {
             Text("Search & Download")
@@ -114,7 +110,7 @@ struct SettingsView: View {
     }
 
     private var acquireFooter: String {
-        var lines = ["Spotify search requires a client id and secret from Spotify's developer dashboard. Genius is optional — it improves music-video matching when configured."]
+        var lines = ["Genius-Assisted Matching improves music-video matching by checking a song's Genius page for its official video before falling back to plain YouTube search — no account or token needed."]
         lines.append("Conservative Matching holds back a download whose audio or video match scored too low to trust, asking first instead of guessing — if only one of audio/video is confident, the other is skipped until you confirm.")
         return lines.joined(separator: " ")
     }

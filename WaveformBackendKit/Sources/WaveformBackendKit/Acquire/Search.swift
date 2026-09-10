@@ -1,6 +1,5 @@
 import Foundation
 import os
-import YouTubeSDK
 
 public enum SearchError: Error, LocalizedError, Sendable {
     case httpError(Int)
@@ -475,169 +474,127 @@ public enum Search {
 /// automatically, since every one of their `youtubeSource:` parameters
 /// defaults to it. Pass an explicit `youtubeSource:` at a call site to
 /// override just that call without touching the global default.
-public enum YouTubeSearchSource: Sendable, Equatable {
+public enum YouTubeSearchSource: String, Sendable, Equatable {
     case web
     case music
 }
 
 /// Both search backends (`.web` = youtube.com, `.music` = YouTube
-/// Music) are now backed by `atpugvaraa/YouTubeSDK` rather than a
-/// hand-rolled Innertube POST — that package already does the same
-/// "walk the response tree generically" work `collectWebRenderers`/
-/// `collectMusicRenderers` used to do here (and carries the same
-/// maintenance burden: it's reverse-engineered, unofficial, and can
-/// need touch-ups when YouTube changes its response shape), so there's
-/// no reason to maintain a second copy of that parsing in this repo.
-/// `YouTubeSearch` below is now just a thin adapter from the SDK's own
-/// models (`YouTubeItem`/`YouTubeVideo`/`YouTubeMusicSong`) to this
-/// package's `SearchCandidate`, which is all `Match.swift`/the rest of
+/// Music) are now a thin HTTP client hitting `waveform-search-backend`
+/// (a small Vercel proxy running youtubei.js) rather than talking to
+/// YouTube directly from the device — that project does the "walk the
+/// response tree generically" reverse-engineered parsing now, so
+/// there's no reason to also carry that unofficial-API maintenance
+/// burden inside the app itself. `YouTubeSearch` below is just a thin
+/// adapter from the backend's flat JSON shape to this package's
+/// `SearchCandidate`, which is all `Match.swift`/the rest of
 /// `Search.swift` know how to score.
+///
+/// The backend deliberately never returns a playable/download URL —
+/// only enough metadata (title, author, duration, view count,
+/// thumbnail, video ID, watch-page URL) for `Match.swift` to score
+/// candidates and pick a winner. Once a winner is picked, resolving
+/// that winner's actual short-lived stream URL still happens entirely
+/// on-device via YouTubeKit (`Resolve.swift`), using nothing but its
+/// video ID — the backend is never involved in that step and never
+/// sees it happen.
 enum YouTubeSearch {
-    /// One instance per backend, reused across calls rather than
-    /// constructed per-search — cheap either way (no persistent
-    /// connection/session state beyond the actor's own `NetworkClient`),
-    /// but there's no reason to throw one away after a single search.
-    /// Neither is constructed with cookies: `YouTubeOAuthClient`/signed-in
-    /// features (liked songs, etc.) aren't wired into this app yet — see
-    /// `YouTubeSDK`'s README §3 if that becomes worth adding later.
-    private static let webClient = YouTubeClient()
-    private static let musicClient = YouTubeMusicClient()
-
     static func search(_ query: String, source: YouTubeSearchSource) async throws -> [SearchCandidate] {
-        switch source {
-        case .web: return try await searchWeb(query)
-        case .music: return try await searchMusic(query)
+        guard var components = URLComponents(
+            url: BackendConfig.baseURL.appendingPathComponent("api/search"),
+            resolvingAgainstBaseURL: false
+        ) else {
+            throw SearchError.unsupported("Malformed search backend URL.")
         }
-    }
+        components.queryItems = [
+            URLQueryItem(name: "q", value: query),
+            URLQueryItem(name: "source", value: source.rawValue)
+        ]
+        guard let url = components.url else {
+            throw SearchError.unsupported("Malformed search backend URL.")
+        }
 
-    // MARK: - .web (youtube.com)
-
-    /// `YouTubeClient.search` returns a `YouTubeContinuation<YouTubeItem>`
-    /// — `YouTubeItem` is a five-case enum (`.video`/`.song`/`.playlist`/
-    /// `.channel`/`.shelf`) rather than a flat video list, since a plain
-    /// web search page can mix in channel/playlist shelves alongside
-    /// videos. `flattenItems` below recurses into `.shelf` (a shelf's
-    /// `items` can itself contain more shelves) and keeps only the two
-    /// cases that can actually become a playable `RemoteRef`: `.video`
-    /// and (rare on `.web`, but harmless to also accept) `.song`.
-    /// `.playlist`/`.channel` results are dropped — this is track search,
-    /// not a browse UI.
-    private static func searchWeb(_ query: String) async throws -> [SearchCandidate] {
-        let result = try await webClient.search(query)
-        return flattenItems(result.items).compactMap(candidate(from:))
-    }
-
-    private static func flattenItems(_ items: [YouTubeItem]) -> [YouTubeItem] {
-        items.flatMap { item -> [YouTubeItem] in
-            if case .shelf(let shelf) = item {
-                return flattenItems(shelf.items)
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+                let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+                WFLog.search.error("Search backend returned HTTP \(status) for \"\(query, privacy: .public)\" at \(url.absoluteString, privacy: .public).")
+                throw SearchError.httpError(status)
             }
-            return [item]
+            let decoded = try JSONDecoder().decode([BackendCandidate].self, from: data)
+            return decoded.map(candidate(from:))
+        } catch let error as SearchError {
+            throw error
+        } catch {
+            // Catches everything below the HTTP layer — DNS failure,
+            // sandboxed-app network-client entitlement missing, TLS
+            // issues, timeouts — cases where the request never got a
+            // response at all rather than an error response. Logged
+            // here specifically because these are otherwise
+            // indistinguishable from "the backend legitimately found
+            // nothing," which is a much harder bug to track down.
+            WFLog.search.error("Search backend request for \"\(query, privacy: .public)\" at \(url.absoluteString, privacy: .public) failed before getting a response: \(error.localizedDescription, privacy: .public)")
+            throw error
         }
     }
 
-    private static func candidate(from item: YouTubeItem) -> SearchCandidate? {
-        switch item {
-        case .video(let video): return candidate(from: video)
-        case .song(let song): return candidate(from: song)
-        case .playlist, .channel, .shelf: return nil
-        }
+    /// The flat shape `waveform-search-backend`'s `/api/search` returns
+    /// for every hit, `.web` or `.music` alike.
+    private struct BackendCandidate: Decodable {
+        let videoId: String
+        let title: String
+        let author: String?
+        let channel: String?
+        let url: String
+        let durationMs: Double?
+        let viewCount: Double?
+        let thumbnailUrl: String?
+        let albumName: String?
     }
 
-    /// `video.title` is the raw, unsplit title text a search result
-    /// renders (same shape the old hand-rolled parsing pulled out of
-    /// `videoRenderer.title`) — still needs `TextMatching.parseArtistTitle`
-    /// to split an "Artist - Title" raw title into `title`/`author`, same
-    /// as before.
-    ///
-    /// `video.lengthInSeconds` is a misleading name for search-result
-    /// videos specifically: `YouTubeSDK`'s own manual `YouTubeVideo(from:)`
-    /// initializer (used here) keeps it as clock-format text ("3:45"),
-    /// *not* a real seconds count — only the `player`-endpoint-backed
-    /// `YouTubeClient.video(id:)` path gets a true seconds string. So this
-    /// still needs `TextMatching.parseClockDuration`, exactly like the old
-    /// `lengthText.simpleText` parsing did.
-    private static func candidate(from video: YouTubeVideo) -> SearchCandidate {
-        let parsed = TextMatching.parseArtistTitle(video.title, channel: video.author)
-        let durationSeconds = TextMatching.parseClockDuration(video.lengthInSeconds)
+    /// `author == nil` marks a `.web` hit: the backend hands back the
+    /// raw, unsplit "Artist - Title"-style video title verbatim (same
+    /// shape the old hand-rolled/YouTubeSDK parsing pulled out of a
+    /// video renderer), so this still needs `TextMatching.parseArtistTitle`
+    /// to split it, exactly as before. A `.music` hit comes back with
+    /// `author` already populated — YouTube Music's own metadata
+    /// separates title from artist, and the backend passes that split
+    /// straight through rather than re-joining and re-splitting it.
+    private static func candidate(from item: BackendCandidate) -> SearchCandidate {
+        let rawTitle = item.title
+
+        if let author = item.author {
+            return SearchCandidate(
+                id: "youtube:\(item.videoId)",
+                origin: .youtube,
+                title: rawTitle,
+                author: author,
+                rawTitle: rawTitle,
+                channel: item.channel,
+                url: item.url,
+                youtubeID: item.videoId,
+                durationMS: item.durationMs,
+                viewCount: item.viewCount,
+                thumbnailURLString: item.thumbnailUrl,
+                albumName: item.albumName
+            )
+        }
+
+        let parsed = TextMatching.parseArtistTitle(rawTitle, channel: item.channel)
         return SearchCandidate(
-            id: "youtube:\(video.id)",
+            id: "youtube:\(item.videoId)",
             origin: .youtube,
             title: parsed.title,
             author: parsed.author,
-            rawTitle: video.title,
-            channel: video.author,
-            url: "https://www.youtube.com/watch?v=\(video.id)",
-            youtubeID: video.id,
-            durationMS: durationSeconds.map { $0 * 1000 },
-            viewCount: parseViewCount(video.viewCount),
-            thumbnailURLString: video.thumbnailURL
+            rawTitle: rawTitle,
+            channel: item.channel,
+            url: item.url,
+            youtubeID: item.videoId,
+            durationMS: item.durationMs,
+            viewCount: item.viewCount,
+            thumbnailURLString: item.thumbnailUrl,
+            albumName: item.albumName
         )
-    }
-
-    // MARK: - .music (music.youtube.com)
-
-    /// `YouTubeMusicClient.search` already returns a flat
-    /// `[YouTubeMusicSong]` — no shelf-walking needed on this path at
-    /// all, unlike `.web`.
-    private static func searchMusic(_ query: String) async throws -> [SearchCandidate] {
-        let songs = try await musicClient.search(query)
-        return songs.map(candidate(from:))
-    }
-
-    /// `YouTubeMusicSong` has no channel/byline field at all (YTM's
-    /// search UI doesn't surface one the way a video search result
-    /// does), so `channel` falls back to the artist name as the closest
-    /// available proxy — same approximation the old hand-rolled
-    /// `.music` parsing used (`channel: artist`). This means
-    /// `Match.scoreCandidate`'s "- Topic"/VEVO channel-name detection
-    /// can't fire for a YTM-sourced candidate; it never could with the
-    /// old parsing either, so this isn't a regression, just a
-    /// pre-existing limitation worth knowing about if channel scoring
-    /// ever looks off specifically for `.music` results.
-    private static func candidate(from song: YouTubeMusicSong) -> SearchCandidate {
-        let author = song.artistsDisplay.isEmpty ? "Unknown Artist" : song.artistsDisplay
-        return SearchCandidate(
-            id: "youtube:\(song.videoId)",
-            origin: .youtube,
-            title: song.title,
-            author: author,
-            rawTitle: song.title,
-            channel: song.artistsDisplay.isEmpty ? nil : song.artistsDisplay,
-            url: "https://www.youtube.com/watch?v=\(song.videoId)",
-            youtubeID: song.videoId,
-            durationMS: song.duration.map { $0 * 1000 },
-            // `YouTubeMusicSong.album` is real data the SDK already
-            // parses out of YTM's search response (unlike a plain `.web`
-            // video search result, which has no structured album field
-            // at all) — previously dropped here even though
-            // `SearchCandidate.albumName` existed to carry exactly this.
-            thumbnailURLString: song.thumbnailURL?.absoluteString,
-            albumName: song.album
-        )
-    }
-
-    // MARK: - Shared helpers
-
-    /// `video.viewCount` is already a display string by the time it
-    /// reaches us (`YouTubeSDK` prefers the full `viewCountText` — a
-    /// real number like "1,234,567 views" — over the abbreviated
-    /// `shortViewCountText`, same preference order the old hand-rolled
-    /// parsing used), so stripping non-digits and parsing still works
-    /// the same way it did before. **Caveat**: if the SDK ever has to
-    /// fall back to the abbreviated form (no full count available),
-    /// digit-stripping "12M views" yields `12`, not 12,000,000 — under-
-    /// counting by orders of magnitude. `Match.relativeViewScores` only
-    /// uses this for a *relative* log-scaled comparison within one
-    /// candidate set, so an occasional lowball on one candidate is a
-    /// minor accuracy loss, not a scoring correctness bug — but worth
-    /// fixing properly (parse the K/M/B suffix) if it turns out to fire
-    /// often in practice. Unparseable/missing text (e.g. "No views")
-    /// yields `nil`, matching the old pipeline treating a missing view
-    /// count as unknown rather than zero.
-    private static func parseViewCount(_ text: String) -> Double? {
-        let digits = text.filter(\.isNumber)
-        return digits.isEmpty ? nil : Double(digits)
     }
 }
 

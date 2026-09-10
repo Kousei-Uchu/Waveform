@@ -16,11 +16,11 @@ struct WaveformApp: App {
     @StateObject private var router = DeepLinkRouter()
     @StateObject private var downloadManager: DownloadManager
     @ObservedObject private var accessibility = AccessibilitySettingsStore.shared
-    // Spotify client id/secret + optional Genius token (§8's Settings
-    // additions) — `Search.pipeline`/`Match.pickVideoSource` read these
-    // via `AcquireSettingsStore.spotifyClient`/`.geniusClient`, both of
-    // which are already written to silently no-op when unconfigured, so
-    // this can exist app-wide from first launch with empty credentials.
+    // Spotify search client + the Genius-assisted-matching toggle (§8's
+    // Settings additions) — `Search.pipeline`/`Match.pickVideoSource`
+    // read these via `AcquireSettingsStore.spotifyClient`/`.geniusClient`,
+    // both of which are already written to silently no-op when off, so
+    // this can exist app-wide from first launch with no setup needed.
     // Explicitly constructed in `init()` (rather than left as a default
     // property initializer) because `DownloadManager` now needs it too,
     // for its own Genius-assisted video re-matching on download.
@@ -31,6 +31,11 @@ struct WaveformApp: App {
         // everything under it (§6/§8) — there's no more `MediaLibrary`
         // scanning a folder full of individually-imported `.cmf` files,
         // so this is the one place the library folder gets opened.
+        // Points every search/Genius call in WaveformBackendKit at the
+        // deployed waveform-search-backend instance — set this to your
+        // real Vercel deployment URL. YouTubeKit's stream resolution
+        // (Resolve.swift) never uses this; it stays entirely on-device.
+        BackendConfig.baseURL = URL(string: "https://waveform-search-backend.vercel.app")!
         let vaultStore = VaultStore()
         let library = LibraryStore(rootURL: vaultStore.libraryRootURL)
         let queue = PlaybackQueue()

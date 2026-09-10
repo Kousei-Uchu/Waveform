@@ -1,23 +1,31 @@
 import Foundation
 import WaveformBackendKit
 
-/// Spotify client id/secret and an optional Genius token — the
-/// credentials `Search.swift`/`Match.swift` need but don't own
-/// themselves (§8's Settings additions: "Spotify client id/secret,
-/// optional Genius token"). Kept separate from `PlaybackSettingsStore`
-/// since that type is specifically playback/download-quality settings;
-/// this one is specifically "who am I talking to the network as."
+/// Spotify search credentials and the Genius-assisted-matching toggle —
+/// the settings `Search.swift`/`Match.swift` need but don't own
+/// themselves. Kept separate from `PlaybackSettingsStore` since that
+/// type is specifically playback/download-quality settings; this one
+/// is specifically "who am I talking to the network as."
+///
+/// Genius no longer needs a per-user access token: search (YouTube +
+/// YouTube Music) and the official Genius API are both proxied through
+/// `waveform-search-backend` now, which holds its own pool of Genius
+/// tokens server-side. `useGeniusMatching` is just an on/off switch —
+/// there's nothing left here to misconfigure.
 ///
 /// Stored in `UserDefaults` for now, same as every other setting in this
-/// app — a real Keychain-backed store would be a reasonable hardening
-/// pass later, but nothing here is more sensitive than an API secret a
-/// user pastes in themselves, and this app has no server component to
-/// leak it to.
+/// app.
 @MainActor
 final class AcquireSettingsStore: ObservableObject {
-    @Published var geniusToken: String {
-        didSet { UserDefaults.standard.set(geniusToken, forKey: Keys.geniusToken) }
+    /// When on, `Match.pickVideoSource` tries a Genius-assisted lookup
+    /// before falling back to the plain weighted YouTube search — see
+    /// `GeniusClient`'s doc comment. On by default: Genius-assisted
+    /// matching has no per-user cost or setup anymore, so there's no
+    /// reason to default it off the way the old token-gated version did.
+    @Published var useGeniusMatching: Bool {
+        didSet { UserDefaults.standard.set(useGeniusMatching, forKey: Keys.useGeniusMatching) }
     }
+
     /// §8: when on, a low-confidence audio/video match (one that never
     /// cleared `Match.qualifies`'s score floor) is held back from the
     /// permanent library rather than silently downloaded — see
@@ -29,13 +37,13 @@ final class AcquireSettingsStore: ObservableObject {
     }
 
     private enum Keys {
-        static let geniusToken = "waveform.geniusToken"
+        static let useGeniusMatching = "waveform.useGeniusMatching"
         static let conservativeMatching = "waveform.conservativeMatching"
     }
 
     init() {
         let defaults = UserDefaults.standard
-        self.geniusToken = defaults.string(forKey: Keys.geniusToken) ?? ""
+        self.useGeniusMatching = defaults.object(forKey: Keys.useGeniusMatching) as? Bool ?? true
         self.conservativeMatching = defaults.bool(forKey: Keys.conservativeMatching)
     }
 
@@ -46,14 +54,13 @@ final class AcquireSettingsStore: ObservableObject {
         return SpotifyClient()
     }
 
-    /// `nil` when no token is configured — `Match.pickVideoSource` treats
-    /// a `nil` `GeniusClient` as "skip the Genius-assisted lookup, fall
-    /// straight to weighted search" rather than erroring.
+    /// `nil` when the user has turned Genius-assisted matching off —
+    /// `Match.pickVideoSource` treats a `nil` `GeniusClient` as "skip
+    /// the Genius-assisted lookup, fall straight to weighted search"
+    /// rather than erroring.
     var geniusClient: GeniusClient? {
-        let token = geniusToken.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !token.isEmpty else { return nil }
-        return GeniusClient(accessToken: token)
+        useGeniusMatching ? GeniusClient() : nil
     }
 
-    var isGeniusConfigured: Bool { geniusClient != nil }
+    var isGeniusEnabled: Bool { useGeniusMatching }
 }

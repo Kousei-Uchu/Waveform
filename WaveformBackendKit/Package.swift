@@ -14,9 +14,12 @@ let package = Package(
         // v3: the .cmf/zip format is gone (spec §2), so ZIPFoundation is no
         // longer a dependency of this package.
         // YouTubeKit (stream resolution) lands now that Acquire/Resolve.swift
-        // exists (§9).
-        .package(url: "https://github.com/alexeichhorn/YouTubeKit.git", from: "0.4.0"),
-        .package(url: "https://github.com/atpugvaraa/YouTubeSDK.git", from: "1.0.0")
+        // exists (§9). YouTubeSDK is gone: search moved server-side to
+        // waveform-search-backend (youtubei.js on Vercel) — see
+        // Acquire/Search.swift and Acquire/BackendConfig.swift. YouTubeKit
+        // stays, unrelated to that change — it only ever resolves an
+        // already-picked video ID's stream URL, entirely on-device.
+        .package(url: "https://github.com/alexeichhorn/YouTubeKit.git", from: "0.4.0")
         // kingslay/FFmpegKit (Shrink's libsvtav1+libopus encode, §9) —
         // Acquire/Shrink.swift exists now and its FFmpegRunning protocol
         // is ready to consume this, but the package still isn't added as
@@ -34,8 +37,7 @@ let package = Package(
         .target(
             name: "WaveformBackendKit",
             dependencies: [
-                .product(name: "YouTubeKit", package: "YouTubeKit"),
-                .product(name: "YouTubeSDK", package: "YouTubeSDK")
+                .product(name: "YouTubeKit", package: "YouTubeKit")
             ]
         ),
         .testTarget(

@@ -426,7 +426,20 @@ public enum Match {
         youtubeSource: YouTubeSearchSource
     ) async -> SourcePick {
         let query = "\(target.author) \(target.title)"
-        var candidates = (try? await YouTubeSearch.search(query, source: youtubeSource)) ?? []
+        var candidates: [SearchCandidate]
+        do {
+            candidates = try await YouTubeSearch.search(query, source: youtubeSource)
+        } catch {
+            // Previously swallowed via `try?` — the only symptom was a
+            // generic "returned no candidates" a few lines down, with
+            // no way to tell a real network/backend failure apart from
+            // a legitimately empty result. Log the actual error here
+            // so a broken backend connection (auth, sandboxing, DNS,
+            // timeout, etc.) is visible immediately instead of looking
+            // identical to "nothing matched."
+            WFLog.match.error("YouTube search backend request for \"\(query, privacy: .public)\" failed: \(error.localizedDescription, privacy: .public)")
+            candidates = []
+        }
         if raw.origin == .youtube {
             candidates.insert(raw, at: 0)
         }
@@ -574,13 +587,16 @@ public enum Match {
 /// auto-generated audio track, never an actual video — as a higher-trust
 /// source for "does an official MV exist, and if so which upload is it"
 /// than free-text YouTube search. Optional throughout: `Match.pickVideoSource`
-/// takes this as `nil` when the user hasn't entered a Genius access token
-/// in Settings (§8), and falls back to the plain weighted search.
+/// takes this as `nil` when the user has Genius-assisted matching turned
+/// off in Settings, and falls back to the plain weighted search.
+///
+/// Talks to `waveform-search-backend`'s `/api/genius/*` passthrough
+/// rather than `api.genius.com` directly — same official Genius API,
+/// same response shapes (`GeniusSearchResponse`/`GeniusSongResponse`
+/// below are unchanged), just no per-user access token: the backend
+/// holds a pool of tokens and rotates past a rate-limited one itself.
 public actor GeniusClient {
-    public let accessToken: String
-    public init(accessToken: String) {
-        self.accessToken = accessToken
-    }
+    public init() {}
 
     public struct VideoResult: Sendable {
         public var videoID: String
@@ -631,20 +647,18 @@ public actor GeniusClient {
 
     // MARK: - Private
 
-    private static let searchURL = URL(string: "https://api.genius.com/search")!
-    private static let songBaseURLString = "https://api.genius.com/songs"
-
     private func search(_ query: String) async throws -> [SongHit] {
-        guard var components = URLComponents(url: Self.searchURL, resolvingAgainstBaseURL: false) else {
-            throw SearchError.unsupported("Malformed Genius search URL.")
+        guard var components = URLComponents(
+            url: BackendConfig.baseURL.appendingPathComponent("api/genius/search"),
+            resolvingAgainstBaseURL: false
+        ) else {
+            throw SearchError.unsupported("Malformed Genius search backend URL.")
         }
         components.queryItems = [URLQueryItem(name: "q", value: query)]
         guard let url = components.url else {
-            throw SearchError.unsupported("Malformed Genius search URL.")
+            throw SearchError.unsupported("Malformed Genius search backend URL.")
         }
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
             throw SearchError.httpError((response as? HTTPURLResponse)?.statusCode ?? -1)
         }
@@ -653,12 +667,17 @@ public actor GeniusClient {
     }
 
     private func song(id: Int) async throws -> GeniusSong {
-        guard let url = URL(string: "\(Self.songBaseURLString)/\(id)") else {
-            throw SearchError.unsupported("Malformed Genius song URL.")
+        guard var components = URLComponents(
+            url: BackendConfig.baseURL.appendingPathComponent("api/genius/song"),
+            resolvingAgainstBaseURL: false
+        ) else {
+            throw SearchError.unsupported("Malformed Genius song backend URL.")
         }
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        let (data, response) = try await URLSession.shared.data(for: request)
+        components.queryItems = [URLQueryItem(name: "id", value: String(id))]
+        guard let url = components.url else {
+            throw SearchError.unsupported("Malformed Genius song backend URL.")
+        }
+        let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
             throw SearchError.httpError((response as? HTTPURLResponse)?.statusCode ?? -1)
         }
